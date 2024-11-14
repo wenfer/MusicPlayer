@@ -46,31 +46,31 @@ public class CustomSliderSkin extends SkinBase<Slider> {
         super(slider);
         initialize();
         slider.requestLayout();
-        registerChangeListener(slider.minProperty(), (event)->{
+        registerChangeListener(slider.minProperty(), (event) -> {
             log.info("listener     min property");
         });
-        registerChangeListener(slider.maxProperty(), (event)->{
+        registerChangeListener(slider.maxProperty(), (event) -> {
             log.info("listener     max property");
         });
-        registerChangeListener(slider.valueProperty(), (event)->{
-            log.info("listener     value property");
+        registerChangeListener(slider.valueProperty(), (event) -> {
+            log.info("listener     value property {}", event.getValue());
         });
-        registerChangeListener(slider.orientationProperty(), (event)->{
+        registerChangeListener(slider.orientationProperty(), (event) -> {
             log.info("listener     orientation property");
         });
-        registerChangeListener(slider.showTickMarksProperty(), (event)->{
+        registerChangeListener(slider.showTickMarksProperty(), (event) -> {
             log.info("listener     showTickMarks property");
         });
-        registerChangeListener(slider.showTickLabelsProperty(), (event)->{
+        registerChangeListener(slider.showTickLabelsProperty(), (event) -> {
             log.info("listener     showTickLabels property");
         });
-        registerChangeListener(slider.majorTickUnitProperty(), (event)->{
+        registerChangeListener(slider.majorTickUnitProperty(), (event) -> {
             log.info("listener     majorTickUnit property");
         });
-        registerChangeListener(slider.minorTickCountProperty(), (event)->{
+        registerChangeListener(slider.minorTickCountProperty(), (event) -> {
             log.info("listener     minorTickCount property");
         });
-        registerChangeListener(slider.labelFormatterProperty(), (event)->{
+        registerChangeListener(slider.labelFormatterProperty(), (event) -> {
             log.info("listener     labelFormatter property");
         });
     }

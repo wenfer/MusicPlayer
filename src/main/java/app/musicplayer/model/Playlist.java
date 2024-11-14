@@ -109,13 +109,7 @@ public class Playlist {
     public void removeSong(int songId) {
       // Loops through the songs in the play list.
       // When the song with an ID matching the selectedSongId is found, it is deleted.
-      Iterator<Song> iterator = songs.iterator();
-      while (iterator.hasNext()) {
-          Song song = iterator.next();
-          if (song.getId() == songId) {
-          	iterator.remove();
-          }
-      }
+        songs.removeIf(song -> song.getId() == songId);
     }
 
     @Override

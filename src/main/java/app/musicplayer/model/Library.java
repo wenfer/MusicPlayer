@@ -25,6 +25,7 @@ import javax.xml.xpath.XPathFactory;
 import app.musicplayer.MusicPlayer;
 import app.musicplayer.util.ImportMusicTask;
 import app.musicplayer.util.Resources;
+import lombok.Data;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
@@ -38,6 +39,7 @@ import org.w3c.dom.NodeList;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+@Data
 public final class Library {
 
     private static final String ID = "id";
@@ -384,9 +386,8 @@ public final class Library {
         int id = 0;
 
         for (Map.Entry<String, List<Song>> entry : albumMap.entrySet()) {
-            ArrayList<Song> songs = new ArrayList<>();
 
-            songs.addAll(entry.getValue());
+            ArrayList<Song> songs = new ArrayList<>(entry.getValue());
 
             TreeMap<String, List<Song>> artistMap = new TreeMap<>(
                     songs.stream()
@@ -395,10 +396,9 @@ public final class Library {
             );
 
             for (Map.Entry<String, List<Song>> e : artistMap.entrySet()) {
-                ArrayList<Song> albumSongs = new ArrayList<>();
                 String artist = e.getValue().get(0).getArtist();
 
-                albumSongs.addAll(e.getValue());
+                ArrayList<Song> albumSongs = new ArrayList<>(e.getValue());
 
                 albums.add(new Album(id++, entry.getKey(), artist, albumSongs));
             }
@@ -439,9 +439,7 @@ public final class Library {
 
         for (Map.Entry<String, List<Album>> entry : artistMap.entrySet()) {
 
-            ArrayList<Album> albums = new ArrayList<>();
-
-            albums.addAll(entry.getValue());
+            ArrayList<Album> albums = new ArrayList<>(entry.getValue());
 
             artists.add(new Artist(entry.getKey(), albums));
         }

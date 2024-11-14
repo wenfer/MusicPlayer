@@ -1,7 +1,10 @@
 package app.musicplayer.model;
 
+import lombok.Getter;
+
 import java.util.List;
 
+@Getter
 public class SearchResult {
 
     private List<Song> songResults;
@@ -14,9 +17,4 @@ public class SearchResult {
         this.artistResults = artistResults;
     }
 
-    public List<Song> getSongResults() { return songResults; }
-
-    public List<Album> getAlbumResults() { return albumResults; }
-
-    public List<Artist> getArtistResults() { return artistResults; }
 }

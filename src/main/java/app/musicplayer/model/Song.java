@@ -18,6 +18,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 
+import lombok.Getter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -31,6 +32,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.scene.image.Image;
 
+@Getter
 public final class Song implements Comparable<Song> {
 
     private int id;
@@ -134,17 +136,6 @@ public final class Song implements Comparable<Song> {
         return this.length;
     }
 
-    public long getLengthInSeconds() {
-        return this.lengthInSeconds;
-    }
-
-    public int getTrackNumber() {
-        return this.trackNumber;
-    }
-
-    public int getDiscNumber() {
-        return this.discNumber;
-    }
 
     public int getPlayCount() {
         return this.playCount.get();
@@ -152,14 +143,6 @@ public final class Song implements Comparable<Song> {
 
     public IntegerProperty playCountProperty() {
         return this.playCount;
-    }
-
-    public LocalDateTime getPlayDate() {
-        return this.playDate;
-    }
-
-    public String getLocation() {
-        return this.location;
     }
 
     public BooleanProperty playingProperty() {

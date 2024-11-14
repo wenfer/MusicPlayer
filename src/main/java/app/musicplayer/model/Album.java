@@ -6,12 +6,15 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 
+import lombok.Data;
+import lombok.Getter;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.tag.Tag;
@@ -23,9 +26,22 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.image.Image;
 
+@Data
 public final class Album implements Comparable<Album> {
 
+    /**
+     * -- GETTER --
+     *  Gets album ID.
+     *
+     * @return album ID
+     */
     private int id;
+    /**
+     * -- GETTER --
+     *  Gets album title
+     *
+     * @return album title
+     */
     private String title;
     private String artist;
     private Image artwork;
@@ -49,27 +65,6 @@ public final class Album implements Comparable<Album> {
         this.artworkProperty = new SimpleObjectProperty<>(getArtwork());
     }
 
-    /**
-     * Gets album ID.
-     *
-     * @return album ID
-     */
-    public int getId() {
-        return this.id;
-    }
-
-    /**
-     * Gets album title
-     *
-     * @return album title
-     */
-    public String getTitle() {
-        return this.title;
-    }
-
-    public String getArtist() {
-        return this.artist;
-    }
 
     public ArrayList<Song> getSongs() {
         return new ArrayList<>(this.songs);
@@ -106,8 +101,8 @@ public final class Album implements Comparable<Album> {
             XMLInputFactory factory = XMLInputFactory.newInstance();
             URL xmlData = new URL(Resources.APIBASE
                     + "method=album.getinfo"
-                    + "&artist=" + URLEncoder.encode(this.artist, "UTF-8")
-                    + "&album=" + URLEncoder.encode(this.title, "UTF-8")
+                    + "&artist=" + URLEncoder.encode(this.artist, StandardCharsets.UTF_8)
+                    + "&album=" + URLEncoder.encode(this.title, StandardCharsets.UTF_8)
                     + "&api_key=" + Resources.APIKEY);
 
             XMLStreamReader reader = factory.createXMLStreamReader(xmlData.openStream(), "UTF-8");
@@ -174,7 +169,7 @@ public final class Album implements Comparable<Album> {
 
     private String removeArticle(String title) {
 
-        String arr[] = title.split(" ", 2);
+        String[] arr = title.split(" ", 2);
 
         if (arr.length < 2) {
 
@@ -185,14 +180,10 @@ public final class Album implements Comparable<Album> {
             String firstWord = arr[0];
             String theRest = arr[1];
 
-            switch (firstWord) {
-                case "A":
-                case "An":
-                case "The":
-                    return theRest;
-                default:
-                    return title;
-            }
+            return switch (firstWord) {
+                case "A", "An", "The" -> theRest;
+                default -> title;
+            };
         }
     }
 }
