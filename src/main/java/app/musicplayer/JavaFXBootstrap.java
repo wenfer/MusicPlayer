@@ -10,7 +10,6 @@ public class JavaFXBootstrap {
 
     public static void main(String[] args) {
         log.error("开始启动");
-
         Application.launch(MusicPlayer.class);
     }
 }

@@ -16,6 +16,10 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+import lombok.Getter;
+import lombok.Setter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -25,23 +29,25 @@ import app.musicplayer.util.Resources;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+@DatabaseTable(tableName = "playlist")
 public class Playlist {
 
+    @DatabaseField(generatedId = true)
+    @Setter
+    @Getter
     private int id;
+
+    @DatabaseField
+    @Setter
+    @Getter
     private String title;
     private ArrayList<Song> songs;
+
+    @Getter
     private String placeholder =
             "Add songs to this playlist by dragging items to the sidebar\n" +
             "or by clicking the Add to Playlist button";
 
-    /**
-     * Constructor for the Playlist class.
-     * Creates a playlist object.
-     * 
-     * @param id
-     * @param title
-     * @param songs
-     */
     public Playlist(int id, String title, ArrayList<Song> songs) {
         this.id = id;
         this.title = title;
@@ -55,17 +61,6 @@ public class Playlist {
         this.placeholder = placeholder;
     }
 
-    public int getId() {
-        return this.id;
-    }
-
-    public String getTitle() {
-        return this.title;
-    }
-
-    public String getPlaceholder() {
-        return this.placeholder;
-    }
 
     public ObservableList<Song> getSongs() {
         return FXCollections.observableArrayList(this.songs);

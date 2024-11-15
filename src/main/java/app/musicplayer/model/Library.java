@@ -210,6 +210,7 @@ public final class Library {
         return i;
     }
 
+
     public static boolean isSupportedFileType(String fileName) {
 
         String extension = "";
@@ -217,19 +218,16 @@ public final class Library {
         if (i > 0) {
             extension = fileName.substring(i+1).toLowerCase();
         }
-        switch (extension) {
+        /*
+           todo  support for flac aac  and  more types
+         */
+        return switch (extension) {
             // MP3
-            case "mp3":
-                // MP4
-            case "mp4":
-            case "m4a":
-            case "m4v":
-                // WAV
-            case "wav":
-                return true;
-            default:
-                return false;
-        }
+            // MP4
+            // WAV
+            case "mp3", "mp4", "m4a", "m4v", "wav" -> true;
+            default -> false;
+        };
     }
 
     /**

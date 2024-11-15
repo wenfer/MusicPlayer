@@ -12,44 +12,56 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 
 import app.musicplayer.util.Resources;
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.image.Image;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Model class for an Artist
- *
  */
-public final class Artist implements Comparable<Artist> {
+@DatabaseTable(tableName = "artist")
+@NoArgsConstructor
+public final class Artist implements Comparable<Artist>, SourceData {
 
+    @DatabaseField(generatedId = true)
+    @Setter
+    @Getter
+    private int id;
+
+    @DatabaseField
+    @Setter
+    @Getter
     private String title;
+
+    @Setter
+    @Getter
+    private String source;
+
+    @Setter
+    @Getter
+    private String sourceInfo;
+
     private ArrayList<Album> albums;
+
     private Image artistImage;
+
     private SimpleObjectProperty<Image> artistImageProperty;
 
-    /**
-     * Constructor for the Artist class.
-     * Creates an artist object and obtains the artist artwork.
-     *
-     * @param title Artist name
-     * @param albums List of artist albums
-     */
     public Artist(String title, ArrayList<Album> albums) {
         this.title = title;
         this.albums = albums;
         this.artistImageProperty = new SimpleObjectProperty<>(getArtistImage());
     }
 
-    /**
-     * Gets the artist title.
-     * @return artist title
-     */
-    public String getTitle() {
-        return this.title;
-    }
 
     /**
      * Gets array list of artist albums
+     *
      * @return artist albums
      */
     public ArrayList<Album> getAlbums() {
@@ -62,6 +74,7 @@ public final class Artist implements Comparable<Artist> {
 
     /**
      * Gets images for artists
+     *
      * @return artist image
      */
     public Image getArtistImage() {
@@ -138,7 +151,7 @@ public final class Artist implements Comparable<Artist> {
 
     private String removeArticle(String title) {
 
-        String arr[] = title.split(" ", 2);
+        String[] arr = title.split(" ", 2);
 
         if (arr.length < 2) {
             return title;
@@ -147,14 +160,10 @@ public final class Artist implements Comparable<Artist> {
             String firstWord = arr[0];
             String theRest = arr[1];
 
-            switch (firstWord) {
-                case "A":
-                case "An":
-                case "The":
-                    return theRest;
-                default:
-                    return title;
-            }
+            return switch (firstWord) {
+                case "A", "An", "The" -> theRest;
+                default -> title;
+            };
         }
     }
 }

@@ -1,11 +1,16 @@
 package app.musicplayer.model;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -19,6 +24,8 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 
 import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -35,11 +42,13 @@ import javafx.scene.image.Image;
 @Getter
 public final class Song implements Comparable<Song> {
 
+    private static final Logger log = LoggerFactory.getLogger(Song.class);
     private int id;
     private SimpleStringProperty title;
     private SimpleStringProperty artist;
     private SimpleStringProperty album;
     private SimpleStringProperty length;
+    private SimpleStringProperty format;
     private long lengthInSeconds;
     private int trackNumber;
     private int discNumber;
@@ -79,7 +88,13 @@ public final class Song implements Comparable<Song> {
         if (artist == null) {
             artist = "Unknown Artist";
         }
-
+        try {
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(new File(location));
+            AudioFormat format = audioStream.getFormat();
+            this.format = new SimpleStringProperty(format.getEncoding().toString());
+        } catch (UnsupportedAudioFileException | IOException e) {
+            log.info("获取文件格式失败");
+        }
         this.id = id;
         this.title = new SimpleStringProperty(title);
         this.artist = new SimpleStringProperty(artist);

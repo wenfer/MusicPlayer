@@ -13,8 +13,11 @@ import javax.imageio.ImageIO;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.tag.Tag;
@@ -26,36 +29,43 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.image.Image;
 
+
+@NoArgsConstructor
 @Data
-public final class Album implements Comparable<Album> {
+@DatabaseTable(tableName = "album")
+public final class Album implements Comparable<Album>, SourceData {
 
     /**
      * -- GETTER --
-     *  Gets album ID.
+     * Gets album ID.
      *
      * @return album ID
      */
+    @DatabaseField(id = true)
     private int id;
-    /**
-     * -- GETTER --
-     *  Gets album title
-     *
-     * @return album title
-     */
+
+    @DatabaseField
     private String title;
+
+    @DatabaseField
     private String artist;
+
+    @DatabaseField
+    private String source;
+
+    @DatabaseField
+    private String sourceInfo;
+
     private Image artwork;
+
     private ArrayList<Song> songs;
+
     private SimpleObjectProperty<Image> artworkProperty;
 
+
     /**
-     * Constructor for the Album class. 
+     * Constructor for the Album class.
      * Creates an album object and obtains the album artwork.
-     *
-     * @param id
-     * @param title
-     * @param artist
-     * @param songs
      */
     public Album(int id, String title, String artist, ArrayList<Song> songs) {
         this.id = id;
@@ -76,7 +86,6 @@ public final class Album implements Comparable<Album> {
 
     public Image getArtwork() {
         if (this.artwork == null) {
-
             try {
                 String location = this.songs.get(0).getLocation();
                 AudioFile audioFile = AudioFileIO.read(new File(location));
