@@ -7,3 +7,5 @@ bin/
 out/
 *.MF
 MusicPlayer.iml
+target
+*.db
