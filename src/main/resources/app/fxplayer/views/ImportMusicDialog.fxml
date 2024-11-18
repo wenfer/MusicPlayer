@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.BorderPane?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="260.0"
+            prefWidth="430.0" styleClass="ImportMusicDialog" stylesheets="@../css/ImportMusicDialog.css"
+            xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="app.fxplayer.views.ImportMusicDialogController">
+    <bottom>
+        <GridPane>
+            <columnConstraints>
+                <!-- 第一列：宽度为 100 像素 -->
+                <ColumnConstraints minWidth="50" prefWidth="100" maxWidth="150" />
+                <!-- 第二列：使用百分比填充，25% -->
+                <ColumnConstraints percentWidth="70"/>
+                <!-- 第三列：剩余空间填充 -->
+                <ColumnConstraints hgrow="ALWAYS" />
+            </columnConstraints>
+            <!-- 行的约束 -->
+            <rowConstraints>
+                <RowConstraints minHeight="30" prefHeight="40" maxHeight="40"/>
+                <RowConstraints minHeight="30" prefHeight="40" maxHeight="40"/>
+                <RowConstraints minHeight="30" prefHeight="40" maxHeight="40"/>
+                <RowConstraints minHeight="30" prefHeight="40" maxHeight="40"/>
+                <RowConstraints minHeight="30" prefHeight="40" maxHeight="40"/>
+            </rowConstraints>
+
+            <Label text="音乐源名称：" GridPane.rowIndex="0" GridPane.columnIndex="0"
+                   textAlignment="CENTER"/>
+            <TextField fx:id="name" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+
+            <Label text="服务器地址：" GridPane.rowIndex="1" GridPane.columnIndex="0"
+                   textAlignment="CENTER"/>
+            <TextField fx:id="serverUrl" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+
+            <Label text="用户名：" GridPane.rowIndex="2" GridPane.columnIndex="0"
+                   textAlignment="CENTER"/>
+            <TextField fx:id="username" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+
+            <Label text="密码：" GridPane.rowIndex="3" GridPane.columnIndex="0" textAlignment="CENTER"/>
+            <PasswordField fx:id="password" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+            <Button fx:id="importMusicButton" alignment="CENTER" mnemonicParsing="false" onMouseClicked="#handleImport"
+                    prefHeight="45.0" prefWidth="300.0" text="导入音乐源" GridPane.rowIndex="4"
+                    GridPane.columnIndex="1"/>
+            <ProgressBar fx:id="progressBar" prefHeight="45.0" prefWidth="400.0" progress="0.0" visible="false"
+                         StackPane.alignment="CENTER"/>
+            <Label fx:id="errorLabel" text="错误信息" style="color: red;" GridPane.rowIndex="5"
+                   GridPane.columnIndex="1"/>
+
+        </GridPane>
+    </bottom>
+    <center>
+        <VBox BorderPane.alignment="CENTER">
+            <Label fx:id="label" alignment="CENTER" text="Select your music folder to import your music library."
+                   textAlignment="CENTER">
+                <font>
+                    <Font name="Verdana" size="14.0"/>
+                </font>
+                <opaqueInsets>
+                    <Insets/>
+                </opaqueInsets>
+                <padding>
+                    <Insets left="10.0" top="15.0"/>
+                </padding>
+            </Label>
+        </VBox>
+    </center>
+</BorderPane>

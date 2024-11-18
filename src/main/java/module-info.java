@@ -7,7 +7,6 @@ module app.musicplayer {
     requires okhttp3;
     requires jaudiotagger;
     requires jintellitype;
-    requires jlayer;
     requires java.logging;
     requires ch.qos.logback.core;
     requires ch.qos.logback.classic;
@@ -20,14 +19,17 @@ module app.musicplayer {
     requires jdk.jdi;
     requires org.apache.commons.codec;
     requires org.xerial.sqlitejdbc;
+    requires kotlin.stdlib;
+    requires cn.hutool.core;
+    requires org.freedesktop.gstreamer;
 
-    opens app.musicplayer to javafx.fxml;
-    opens app.musicplayer.model to javafx.base, ormlite.jdbc;
-    opens app.musicplayer.views to javafx.fxml;
+    opens app.fxplayer to javafx.fxml;
+    opens app.fxplayer.model to javafx.base, ormlite.jdbc;
+    opens app.fxplayer.views to javafx.fxml;
 
-    exports app.musicplayer;
-    exports app.musicplayer.source;
-    exports app.musicplayer.views to javafx.fxml;
-    exports app.musicplayer.model to ormlite.jdbc;
+    exports app.fxplayer;
+    exports app.fxplayer.source;
+    exports app.fxplayer.views to javafx.fxml;
+    exports app.fxplayer.model to ormlite.jdbc;
 
 }
