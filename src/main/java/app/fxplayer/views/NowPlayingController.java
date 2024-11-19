@@ -7,6 +7,7 @@ import java.util.ResourceBundle;
 
 import app.fxplayer.AppConfig;
 import app.fxplayer.MusicPlayer;
+import app.fxplayer.NewPlayer;
 import app.fxplayer.model.Song;
 import app.fxplayer.util.ClippedTableCell;
 import app.fxplayer.util.ControlPanelTableCell;
@@ -31,6 +32,7 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
+import lombok.Getter;
 
 public class NowPlayingController implements Initializable, SubView {
 
@@ -42,17 +44,15 @@ public class NowPlayingController implements Initializable, SubView {
     @FXML private TableColumn<Song, String> lengthColumn;
     @FXML private TableColumn<Song, Integer> playsColumn;
     
+    @Getter
     private Song selectedSong;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
-        AppConfig appConfig = AppConfig.getInstance();
-
         tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-
-        //ObservableList<Song> songs = FXCollections.observableArrayList(MusicPlayer.getNowPlayingList());
+        ObservableList<Song> songs = FXCollections.observableArrayList(NewPlayer.getInstance().getNowPlayingList());
 
         titleColumn.prefWidthProperty().bind(tableView.widthProperty().subtract(50).multiply(0.26));
         artistColumn.prefWidthProperty().bind(tableView.widthProperty().subtract(50).multiply(0.26));
@@ -79,7 +79,7 @@ public class NowPlayingController implements Initializable, SubView {
         	event.consume();
         });
 
-        //tableView.setItems(songs);
+        tableView.setItems(songs);
 
         tableView.setRowFactory(x -> {
 
@@ -108,15 +108,12 @@ public class NowPlayingController implements Initializable, SubView {
                     play();
                 } else if (event.isShiftDown()) {
                 	ArrayList<Integer> indices = new ArrayList<>(sm.getSelectedIndices());
-                	if (indices.size() < 1) {
-                		if (indices.contains(row.getIndex())) {
-                    		sm.clearSelection(row.getIndex());
-                    	} else {
-                    		sm.select(row.getItem());
-                    	}
-                	} else {
+                	if (indices.isEmpty()) {
+                        row.getIndex();
+                        sm.select(row.getItem());
+                    } else {
                 		sm.clearSelection();
-	                	indices.sort((first, second) -> first.compareTo(second));
+	                	indices.sort(Integer::compareTo);
 	                	int max = indices.get(indices.size() - 1);
 	                	int min = indices.get(0);
 	                	if (min < row.getIndex()) {
@@ -191,7 +188,6 @@ public class NowPlayingController implements Initializable, SubView {
     
     @Override
     public void play() {
-    	
     	Song song = selectedSong;
         ObservableList<Song> songList = tableView.getItems();
         if (MusicPlayer.isShuffleActive()) {
@@ -199,15 +195,10 @@ public class NowPlayingController implements Initializable, SubView {
         	songList.remove(song);
         	songList.add(0, song);
         }
-/*        MusicPlayer.setNowPlayingList(songList);
-        MusicPlayer.setNowPlaying(song);
-        MusicPlayer.play();*/
+        NewPlayer.getInstance().play(song);
     }
     
     @Override
     public void scroll(char letter) {}
-    
-    public Song getSelectedSong() {
-    	return selectedSong;
-    }
+
 }

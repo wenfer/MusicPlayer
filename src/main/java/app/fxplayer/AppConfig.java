@@ -47,8 +47,8 @@ public class AppConfig {
             settingsDao = this.getDao(Settings.class);
             log.info("开始初始化数据库");
             TableUtils.createTableIfNotExists(connectionSource, Settings.class);
-            TableUtils.createTableIfNotExists(connectionSource, Album.class);
-            TableUtils.createTableIfNotExists(connectionSource, Artist.class);
+            //TableUtils.createTableIfNotExists(connectionSource, Album.class);
+            //TableUtils.createTableIfNotExists(connectionSource, Artist.class);
             settingsDao.queryForAll().forEach(s -> settingsCache.put(s.getName(), s.getValue()));
             String sourceInfo = this.get(SOURCE_INFO);
             if (!StrUtil.isBlank(sourceInfo)) {

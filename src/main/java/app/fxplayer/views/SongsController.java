@@ -5,8 +5,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.ResourceBundle;
 
+import app.fxplayer.AppConfig;
 import app.fxplayer.MusicPlayer;
-import app.fxplayer.model.Library;
+
+import app.fxplayer.model.Playlist;
 import app.fxplayer.model.Song;
 import app.fxplayer.util.ClippedTableCell;
 import app.fxplayer.util.ControlPanelTableCell;
@@ -15,6 +17,7 @@ import app.fxplayer.util.SubView;
 import javafx.animation.Animation;
 import javafx.animation.Transition;
 import javafx.beans.value.ChangeListener;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
@@ -103,7 +106,7 @@ public class SongsController implements Initializable, SubView {
         });
 
         // Retrieves the list of songs in the library, sorts them, and adds them to the table.
-        ObservableList<Song> songs = Library.getSongs();
+        ObservableList<Song> songs = FXCollections.observableArrayList(AppConfig.getInstance().getMusicSource().getSongs());
 
         songs.sort(this::compareSongs);
 
@@ -212,25 +215,25 @@ public class SongsController implements Initializable, SubView {
             }
         });
 
-        titleColumn.setComparator((x, y) -> {
+//        titleColumn.setComparator((x, y) -> {
+//
+//            if (x == null && y == null) {
+//                return 0;
+//            } else if (x == null) {
+//                return 1;
+//            } else if (y == null) {
+//                return -1;
+//            }
+//
+//            Song first = Library.getSong(x);
+//            Song second = Library.getSong(y);
+//
+//            return compareSongs(first, second);
+//        });
 
-            if (x == null && y == null) {
-                return 0;
-            } else if (x == null) {
-                return 1;
-            } else if (y == null) {
-                return -1;
-            }
-
-            Song first = Library.getSong(x);
-            Song second = Library.getSong(y);
-
-            return compareSongs(first, second);
-        });
-
-        artistColumn.setComparator((first, second) -> Library.getArtist(first).compareTo(Library.getArtist(second)));
-
-        albumColumn.setComparator((first, second) -> Library.getAlbum(first).compareTo(Library.getAlbum(second)));
+//        artistColumn.setComparator((first, second) -> Library.getArtist(first).compareTo(Library.getArtist(second)));
+//
+//        albumColumn.setComparator((first, second) -> Library.getAlbum(first).compareTo(Library.getAlbum(second)));
     }
 
     private int compareSongs(Song x, Song y) {

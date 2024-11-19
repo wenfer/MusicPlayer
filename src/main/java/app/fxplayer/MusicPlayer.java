@@ -54,9 +54,6 @@ public class MusicPlayer{
 
     private MusicPlayer musicPlayer;
 
-    @Getter
-    private static Stage stage;
-
     // Stores the number of files in library.xml.
     // This will then be compared to the number of files in the music directory when starting up the application to
     // determine if the xml file needs to be updated by adding or deleting songs.
@@ -69,67 +66,7 @@ public class MusicPlayer{
     @Getter
     private static int lastIdAssigned;
 
-    private AppConfig appConfig = AppConfig.getInstance();
 
-
-    private void initializePlayer() {
-
-        String sourceServerUrl = appConfig.get(SOURCE_SERVER_URL);
-        if (sourceServerUrl == null || sourceServerUrl.isEmpty()) {
-            //
-            log.info("未配置服务器源");
-            createSource();
-        }
-
-        this.musicPlayer = new MusicPlayer();
-    }
-
-
-
-    private void createSource() {
-        try {
-            FXMLLoader loader = new FXMLLoader(MusicPlayer.class.getResource(Resources.FXML + "ImportMusicDialog.fxml"));
-            BorderPane importView = loader.load();
-
-            // Create the dialog Stage.
-            Stage dialogStage = new Stage();
-            dialogStage.setTitle("Music Player Configuration");
-            // Forces user to focus on dialog.
-            dialogStage.initModality(Modality.WINDOW_MODAL);
-            // Sets minimal decorations for dialog.
-            dialogStage.initStyle(StageStyle.UTILITY);
-            // Prevents the alert from being re-sizable.
-            dialogStage.setResizable(false);
-            dialogStage.initOwner(stage);
-
-            // Sets the import music dialog scene in the stage.
-            dialogStage.setScene(new Scene(importView));
-
-            // Set the dialog into the controller.
-            ImportMusicDialogController controller = loader.getController();
-            controller.setDialogStage(dialogStage);
-            // Show the dialog and wait until the user closes it.
-            dialogStage.showAndWait();
-            // Checks if the music was imported successfully. Closes the application otherwise.
-            boolean musicImported = controller.isMusicImported();
-            if (!musicImported) {
-                System.exit(0);
-            }
-        } catch (IOException e) {
-            //e.printStackTrace();
-            log.error("error", e);
-        }
-    }
-
-
-
-    private static class SongSkipper implements Runnable {
-        @Override
-        public void run() {
-            //skip();
-            log.error("not set");
-        }
-    }
 
 /*    private static class TimeUpdater extends TimerTask {
         private int length = (int) getNowPlaying().getLengthInSeconds() * 4;
@@ -329,12 +266,12 @@ public class MusicPlayer{
 //    }
 
     private static void updatePlayCount() {
-        if (nowPlaying != null) {
-            int length = (int) nowPlaying.getLengthInSeconds();
-            if ((100 * secondsPlayed / length) > 50) {
-                nowPlaying.played();
-            }
-        }
+//        if (nowPlaying != null) {
+//            int length = (int) nowPlaying.getLengthInSeconds();
+//            if ((100 * secondsPlayed / length) > 50) {
+//                nowPlaying.played();
+//            }
+//        }
     }
 
     public static String getTimePassed() {
@@ -346,11 +283,12 @@ public class MusicPlayer{
 
     public static String getTimeRemaining() {
         long secondsPassed = timerCounter / 4;
-        long totalSeconds = getNowPlaying().getLengthInSeconds();
-        long secondsRemaining = totalSeconds - secondsPassed;
-        long minutes = secondsRemaining / 60;
-        long seconds = secondsRemaining % 60;
-        return Long.toString(minutes) + ":" + (seconds < 10 ? "0" + seconds : Long.toString(seconds));
+        //long totalSeconds = getNowPlaying().getLengthInSeconds();
+        //long secondsRemaining = totalSeconds - secondsPassed;
+        //long minutes = secondsRemaining / 60;
+        //long seconds = secondsRemaining % 60;
+        //return Long.toString(minutes) + ":" + (seconds < 10 ? "0" + seconds : Long.toString(seconds));
+        return "10:00";
     }
 
     public static int getXMLFileNum() {

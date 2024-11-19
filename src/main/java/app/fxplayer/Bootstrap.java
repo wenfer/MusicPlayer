@@ -1,12 +1,9 @@
 package app.fxplayer;
 
-import app.fxplayer.model.Album;
-import app.fxplayer.model.Artist;
-import app.fxplayer.model.Library;
-import app.fxplayer.model.Song;
 import app.fxplayer.source.MusicSource;
 import app.fxplayer.util.Resources;
 import app.fxplayer.views.ImportMusicDialogController;
+import app.fxplayer.views.MainController;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -14,20 +11,13 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.List;
 import java.util.Timer;
-
-import static app.fxplayer.DbConstants.SOURCE_SERVER_URL;
 
 @Slf4j
 public class Bootstrap extends Application {
@@ -38,10 +28,14 @@ public class Bootstrap extends Application {
 
     private int secondsPlayed;
 
+    @Getter
+    private static MainController mainController;
     /**
      * main window
      */
-    private Stage stage;
+    @Getter
+    private static Stage stage;
+
     private NewPlayer newPlayer;
 
 
@@ -133,14 +127,14 @@ public class Bootstrap extends Application {
         this.newPlayer = NewPlayer.getInstance();
 
 
-       Thread thread = new Thread(() -> {
+        Thread thread = new Thread(() -> {
             NewPlayer newPlayer = NewPlayer.getInstance();
             newPlayer.initializeList();
             //nowPlaying.setPlaying(true);
             timer = new Timer();
             timerCounter = 0;
             secondsPlayed = 0;
-            newPlayer.play();
+            //newPlayer.play();
 /*            File imgFolder = new File(Resources.JAR + "/img");
             if (!imgFolder.exists()) {
 
@@ -179,6 +173,7 @@ public class Bootstrap extends Application {
             // Load main layout from fxml file.
             FXMLLoader loader = new FXMLLoader(this.getClass().getResource(Resources.FXML + "Main.fxml"));
             BorderPane view = loader.load();
+            mainController = loader.getController();
 
             // Shows the scene containing the layout.
             double width = stage.getScene().getWidth();
@@ -191,7 +186,6 @@ public class Bootstrap extends Application {
             stage.setScene(scene);
 
             // Gives the controller access to the music player main application.
-            //mainController = loader.getController();
 
 
             //mediaPlayer.volumeProperty().bind(mainController.getVolumeSlider().valueProperty().divide(200));

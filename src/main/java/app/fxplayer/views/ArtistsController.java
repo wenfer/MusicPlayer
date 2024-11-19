@@ -3,14 +3,18 @@ package app.fxplayer.views;
 import java.net.URL;
 import java.util.Collections;
 import java.util.ResourceBundle;
+
+import app.fxplayer.AppConfig;
+import app.fxplayer.Bootstrap;
 import app.fxplayer.MusicPlayer;
+import app.fxplayer.NewPlayer;
 import app.fxplayer.model.Artist;
-import app.fxplayer.model.Library;
 import app.fxplayer.model.Song;
 import app.fxplayer.util.SubView;
 import javafx.animation.Animation;
 import javafx.animation.Transition;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
@@ -32,14 +36,14 @@ import javafx.util.Duration;
 public class ArtistsController implements Initializable, SubView {
 
     @FXML private FlowPane grid;
+
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
-        ObservableList<Artist> artists = Library.getArtists();
+        ObservableList<Artist> artists = FXCollections.observableArrayList(AppConfig.getInstance().getMusicSource().listArtists());
         Collections.sort(artists);
 
-        int limit = (artists.size() < 25) ? artists.size() : 25;
+        int limit = Math.min(artists.size(), 25);
 
         for (int i = 0; i < limit; i++) {
 
@@ -79,6 +83,7 @@ public class ArtistsController implements Initializable, SubView {
         title.setPadding(new Insets(10, 0, 10, 0));
         title.setAlignment(Pos.TOP_LEFT);
         title.setPrefHeight(66);
+        title.setUserData(artist);
         title.prefWidthProperty().bind(grid.widthProperty().subtract(100).divide(5).subtract(1));
 
         image.fitWidthProperty().bind(grid.widthProperty().subtract(100).divide(5).subtract(1));
@@ -95,17 +100,14 @@ public class ArtistsController implements Initializable, SubView {
         cell.setPadding(new Insets(10, 10, 0, 10));
         cell.getStyleClass().add("artist-cell");
         cell.setAlignment(Pos.CENTER);
-/*        cell.setOnMouseClicked(event -> {
-
-           // MainController mainController = MusicPlayer.getMainController();
+        cell.setOnMouseClicked(event -> {
+            MainController mainController = Bootstrap.getMainController();
             ArtistsMainController artistsMainController = (ArtistsMainController) mainController.loadView("ArtistsMain");
-
             VBox artistCell = (VBox) event.getSource();
-            String artistTitle = ((Label) artistCell.getChildren().get(1)).getText();
-            Artist a = Library.getArtist(artistTitle);
+            Artist a = (Artist)((Label) artistCell.getChildren().get(1)).getUserData();
             artistsMainController.selectArtist(a);
         });
-        */
+
         cell.setOnDragDetected(event -> {
         	PseudoClass pressed = PseudoClass.getPseudoClass("pressed");
         	cell.pseudoClassStateChanged(pressed, false);
@@ -142,8 +144,8 @@ public class ArtistsController implements Initializable, SubView {
             }
         }
     	
-    	//ScrollPane scrollpane = MusicPlayer.getMainController().getScrollPane();
-/*
+    	ScrollPane scrollpane = Bootstrap.getMainController().getScrollPane();
+
     	double row = (index / 5) * cellHeight;
     	double finalVvalue = row / (grid.getHeight() - scrollpane.getHeight());
     	double startVvalue = scrollpane.getVvalue();
@@ -156,9 +158,9 @@ public class ArtistsController implements Initializable, SubView {
                 double vValue = startVvalue + ((finalVvalue - startVvalue) * frac);
                 scrollpane.setVvalue(vValue);
             }
-        };*/
+        };
         
-       // scrollAnimation.play();
+       scrollAnimation.play();
     }
     
     private String removeArticle(String title) {
@@ -172,14 +174,10 @@ public class ArtistsController implements Initializable, SubView {
             String firstWord = arr[0];
             String theRest = arr[1];
 
-            switch (firstWord) {
-                case "A":
-                case "An":
-                case "The":
-                    return theRest;
-                default:
-                    return title;
-            }
+            return switch (firstWord) {
+                case "A", "An", "The" -> theRest;
+                default -> title;
+            };
         }
     }
     

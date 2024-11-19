@@ -1,13 +1,7 @@
 package app.fxplayer.util;
 
-import app.fxplayer.model.Library;
-import app.fxplayer.model.Song;
-import app.fxplayer.model.Album;
-import app.fxplayer.model.Artist;
 import app.fxplayer.model.SearchResult;
 
-import java.util.List;
-import java.util.stream.Collectors;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 
@@ -30,7 +24,7 @@ public class Search {
         }
 
         String text = searchText.toUpperCase();
-
+/*
         searchThread = new Thread(() -> {
             try {
 
@@ -125,6 +119,6 @@ public class Search {
                 // terminate thread
             }
         });
-        searchThread.start();
+        searchThread.start();*/
     }
 }

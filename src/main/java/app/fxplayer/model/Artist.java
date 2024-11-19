@@ -24,16 +24,13 @@ import lombok.Setter;
 /**
  * Model class for an Artist
  */
-@DatabaseTable(tableName = "artist")
 @NoArgsConstructor
 public final class Artist implements Comparable<Artist>, SourceData {
 
-    @DatabaseField(generatedId = true)
     @Setter
     @Getter
-    private int id;
+    private String id;
 
-    @DatabaseField
     @Setter
     @Getter
     private String title;
@@ -42,31 +39,20 @@ public final class Artist implements Comparable<Artist>, SourceData {
     @Getter
     private String source;
 
-    @Setter
-    @Getter
-    private String sourceInfo;
-
-    private ArrayList<Album> albums;
+    private String coverArtId;
 
     private Image artistImage;
 
     private SimpleObjectProperty<Image> artistImageProperty;
 
-    public Artist(String title, ArrayList<Album> albums) {
+    public Artist(String id,String title, String coverArtId) {
+        this.id = id;
         this.title = title;
-        this.albums = albums;
+        this.coverArtId = coverArtId;
         this.artistImageProperty = new SimpleObjectProperty<>(getArtistImage());
     }
 
 
-    /**
-     * Gets array list of artist albums
-     *
-     * @return artist albums
-     */
-    public ArrayList<Album> getAlbums() {
-        return new ArrayList<>(this.albums);
-    }
 
     public ObjectProperty<Image> artistImageProperty() {
         return this.artistImageProperty;
@@ -96,50 +82,6 @@ public final class Artist implements Comparable<Artist>, SourceData {
         return artistImage;
     }
 
-    public void downloadArtistImage() {
-        try {
-            File file = new File(Resources.JAR + "/img/" + this.title + ".jpg");
-            file.mkdirs();
-            XMLInputFactory factory = XMLInputFactory.newInstance();
-            URL xmlData = new URL(Resources.APIBASE
-                    + "method=artist.getinfo"
-                    + "&artist=" + URLEncoder.encode(this.title, "UTF-8")
-                    + "&api_key=" + Resources.APIKEY);
-            XMLStreamReader reader = factory.createXMLStreamReader(xmlData.openStream(), "UTF-8");
-            boolean imageFound = false;
-
-            while (reader.hasNext() && !imageFound) {
-                reader.next();
-
-                if (reader.isStartElement()
-                        && reader.getName().getLocalPart().equals("image")
-                        && reader.getAttributeValue(0).equals("extralarge")) {
-
-                    reader.next();
-
-                    if (reader.hasText()) {
-                        BufferedImage bufferedImage = ImageIO.read(new URL(reader.getText()));
-                        BufferedImage newBufferedImage = new BufferedImage(bufferedImage.getWidth(),
-                                bufferedImage.getHeight(), BufferedImage.TYPE_INT_RGB);
-                        newBufferedImage.createGraphics().drawImage(bufferedImage, 0, 0, Color.WHITE, null);
-                        ImageIO.write(newBufferedImage, "jpg", file);
-                        imageFound = true;
-                    }
-                }
-            }
-
-            artistImage = new Image(file.toURI().toURL().toString());
-            if (artistImage.isError()) {
-                file.delete();
-                artistImage = new Image(Resources.IMG + "artistsIcon.png");
-            }
-            this.artistImageProperty.setValue(artistImage);
-
-        } catch (Exception ex) {
-            File file = new File(Resources.JAR + "/img/" + this.title + ".jpg");
-            file.delete();
-        }
-    }
 
     @Override
     public int compareTo(Artist other) {

@@ -3,10 +3,11 @@ package app.fxplayer.views;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.ResourceBundle;
 
+import app.fxplayer.Bootstrap;
 import app.fxplayer.MusicPlayer;
-import app.fxplayer.model.Library;
 import app.fxplayer.model.MostPlayedPlaylist;
 import app.fxplayer.model.Playlist;
 import app.fxplayer.model.RecentlyPlayedPlaylist;
@@ -140,15 +141,12 @@ public class PlaylistsController implements Initializable, SubView {
                     play();
                 } else if (event.isShiftDown()) {
                     ArrayList<Integer> indices = new ArrayList<>(sm.getSelectedIndices());
-                    if (indices.size() < 1) {
-                        if (indices.contains(row.getIndex())) {
-                            sm.clearSelection(row.getIndex());
-                        } else {
-                            sm.select(row.getItem());
-                        }
+                    if (indices.isEmpty()) {
+                        row.getIndex();
+                        sm.select(row.getItem());
                     } else {
                         sm.clearSelection();
-                        indices.sort((first, second) -> first.compareTo(second));
+                        indices.sort(Comparator.naturalOrder());
                         int max = indices.get(indices.size() - 1);
                         int min = indices.get(0);
                         if (min < row.getIndex()) {
@@ -315,19 +313,19 @@ public class PlaylistsController implements Initializable, SubView {
             String selectedPlaylistTitle = selectedPlaylist.getTitle();
 
             // Gets the playlist box children to loop through each to find the correct child to remove.
-           // ObservableList<Node> playlistBoxChildren = MusicPlayer.getMainController().getPlaylistBox().getChildren();
+            ObservableList<Node> playlistBoxChildren = Bootstrap.getMainController().getPlaylistBox().getChildren();
 
             // Initialize i at 1 to ignore the new playlist cell.
-//            for (int i = 1; i <= playlistBoxChildren.size(); i++) {
-//                // Gets each cell in the playlist box and retrieves the cell's label.
-//                cell = (HBox) playlistBoxChildren.get(i);
-//                Label cellLabel = (Label) cell.getChildren().get(1);
-//
-//                // Ends the process if the cell's label matches the selected playlist's title.
-//                if (cellLabel.getText().equals(selectedPlaylistTitle)) {
-//                    break;
-//                }
-//            }
+            for (int i = 1; i <= playlistBoxChildren.size(); i++) {
+                // Gets each cell in the playlist box and retrieves the cell's label.
+                cell = (HBox) playlistBoxChildren.get(i);
+                Label cellLabel = (Label) cell.getChildren().get(1);
+
+                // Ends the process if the cell's label matches the selected playlist's title.
+                if (cellLabel.getText().equals(selectedPlaylistTitle)) {
+                    break;
+                }
+            }
 
             deletePlaylistAnimation.play();
 
@@ -335,10 +333,9 @@ public class PlaylistsController implements Initializable, SubView {
             //XMLEditor.deletePlaylistFromXML(selectedPlaylist.getId());
 
             // Loads the artists view.
-           // MusicPlayer.getMainController().loadView("artists");
+            Bootstrap.getMainController().loadView("artists");
 
             // Removes the selected playlist from the library so that it is not reloaded.
-            Library.removePlaylist(selectedPlaylist);
 
             // Resets the selected playlist to avoid storing the deleted playlist's data.
             selectedPlaylist = null;

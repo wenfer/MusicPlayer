@@ -4,6 +4,5 @@ public interface SourceData {
 
     String getSource();
 
-    String getSourceInfo();
 
 }

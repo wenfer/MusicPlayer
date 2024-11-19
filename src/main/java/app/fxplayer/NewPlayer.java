@@ -1,12 +1,11 @@
 package app.fxplayer;
 
 import app.fxplayer.model.Album;
-import app.fxplayer.model.Library;
+import app.fxplayer.model.Playlist;
 import app.fxplayer.model.Song;
 import cn.hutool.core.io.FileUtil;
-import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.Media;
-
+import javafx.scene.media.MediaPlayer;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,15 +21,15 @@ public class NewPlayer {
     private static NewPlayer instance;
 
     @Getter
-    private List<Song> nowPlayingList = new ArrayList<>();
+    private final List<Song> nowPlayingList = new ArrayList<>();
 
-    private AppConfig appConfig = AppConfig.getInstance();
+    private final AppConfig appConfig = AppConfig.getInstance();
 
     private int nowPlayingIndex = 0;
 
     private MediaPlayer mediaPlayer;
-    private ExecutorService downloadThread = Executors.newSingleThreadExecutor();
-    private ExecutorService playThread = Executors.newSingleThreadExecutor();
+    private final ExecutorService downloadThread = Executors.newSingleThreadExecutor();
+    private final ExecutorService playThread = Executors.newSingleThreadExecutor();
 
 
     private NewPlayer() {
@@ -42,6 +41,17 @@ public class NewPlayer {
             instance = new NewPlayer();
         }
         return instance;
+    }
+
+
+    public List<Playlist> getPlaylists() {
+        return List.of();
+    }
+
+    public void play(Song song) {
+        this.nowPlayingList.add(song);
+        this.nowPlayingIndex = this.nowPlayingList.size() + 1;
+        this.playAndCache(song);
     }
 
     public void play() {
@@ -62,8 +72,8 @@ public class NewPlayer {
                 nowPlayingList.addAll(appConfig.getMusicSource().listByAlbum(album));
             }
             nowPlayingList.sort((first, second) -> {
-                Album firstAlbum = Library.getAlbum(first.getAlbum());
-                Album secondAlbum = Library.getAlbum(second.getAlbum());
+                Album firstAlbum = first.getAlbumObj();
+                Album secondAlbum = second.getAlbumObj();
                 if (firstAlbum.compareTo(secondAlbum) != 0) {
                     return firstAlbum.compareTo(secondAlbum);
                 } else {
@@ -76,17 +86,17 @@ public class NewPlayer {
 
 
     private void playAndCache(Song song) {
-        song.setPlaying(true);
-        File tempFile = FileUtil.createTempFile();
+
         downloadThread.execute(() -> {
             InputStream stream = null;
             try {
+                song.setPlaying(true);
                 stream = appConfig.getMusicSource().stream(song);
-
+                File tempFile = FileUtil.createTempFile();
                 // 获取输入流
                 InputStream inputStream = new BufferedInputStream(stream);
                 FileOutputStream outputStream = new FileOutputStream(tempFile);
-
+                log.info("开始播放音乐:{}  缓存路径:{}", song.getTitle(), tempFile.getAbsolutePath());
                 byte[] buffer = new byte[4096];
                 int bytesRead;
                 boolean startedPlaying = false;
@@ -113,7 +123,7 @@ public class NewPlayer {
                 outputStream.close();
                 inputStream.close();
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("播放失败", e);
             } finally {
                 if (stream != null) {
                     try {

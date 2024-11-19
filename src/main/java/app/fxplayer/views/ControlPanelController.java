@@ -3,8 +3,8 @@ package app.fxplayer.views;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import app.fxplayer.Bootstrap;
 import app.fxplayer.MusicPlayer;
-import app.fxplayer.model.Library;
 import app.fxplayer.model.Playlist;
 import app.fxplayer.model.Song;
 import app.fxplayer.util.SubView;
@@ -45,8 +45,8 @@ public class ControlPanelController implements Initializable {
 
 	@FXML
 	private void playSong(Event e) {
-		//SubView controller = MusicPlayer.getMainController().getSubViewController();
-		//c//ontroller.play();
+		SubView controller = Bootstrap.getMainController().getSubViewController();
+		controller.play();
 		e.consume();
 	}
 

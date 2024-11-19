@@ -21,7 +21,6 @@ module app.musicplayer {
     requires org.xerial.sqlitejdbc;
     requires kotlin.stdlib;
     requires cn.hutool.core;
-    requires org.freedesktop.gstreamer;
 
     opens app.fxplayer to javafx.fxml;
     opens app.fxplayer.model to javafx.base, ormlite.jdbc;
