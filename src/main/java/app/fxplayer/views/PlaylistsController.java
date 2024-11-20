@@ -1,22 +1,14 @@
 package app.fxplayer.views;
 
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.ResourceBundle;
-
+import app.fxplayer.AppConfig;
 import app.fxplayer.Bootstrap;
 import app.fxplayer.MusicPlayer;
+import app.fxplayer.NewPlayer;
 import app.fxplayer.model.MostPlayedPlaylist;
 import app.fxplayer.model.Playlist;
 import app.fxplayer.model.RecentlyPlayedPlaylist;
 import app.fxplayer.model.Song;
-import app.fxplayer.util.ClippedTableCell;
-import app.fxplayer.util.ControlPanelTableCell;
-import app.fxplayer.util.PlayingTableCell;
-import app.fxplayer.util.Resources;
-import app.fxplayer.util.SubView;
+import app.fxplayer.util.*;
 import javafx.animation.Animation;
 import javafx.animation.Animation.Status;
 import javafx.animation.Interpolator;
@@ -30,52 +22,60 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.TransferMode;
+import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
 
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.ResourceBundle;
+
 public class PlaylistsController implements Initializable, SubView {
 
-    @FXML private TableView<Song> tableView;
-    @FXML private TableColumn<Song, Boolean> playingColumn;
-    @FXML private TableColumn<Song, String> titleColumn;
-    @FXML private TableColumn<Song, String> artistColumn;
-    @FXML private TableColumn<Song, String> albumColumn;
-    @FXML private TableColumn<Song, String> lengthColumn;
-    @FXML private TableColumn<Song, Integer> playsColumn;
-    
-    @FXML private Label playlistTitleLabel;
-    @FXML private HBox controlBox;
-    @FXML private Pane deleteButton;
+    @FXML
+    private TableView<Song> tableView;
+    @FXML
+    private TableColumn<Song, Boolean> playingColumn;
+    @FXML
+    private TableColumn<Song, String> titleColumn;
+    @FXML
+    private TableColumn<Song, String> artistColumn;
+    @FXML
+    private TableColumn<Song, String> albumColumn;
+    @FXML
+    private TableColumn<Song, String> lengthColumn;
+    @FXML
+    private TableColumn<Song, Integer> playsColumn;
+
+    @FXML
+    private Label playlistTitleLabel;
+    @FXML
+    private HBox controlBox;
+    @FXML
+    private Pane deleteButton;
 
     private Playlist selectedPlaylist;
     private Song selectedSong;
-    
+
     // Used to store the individual playlist boxes from the playlistBox. 
     private HBox cell;
-    
-    private Animation deletePlaylistAnimation = new Transition() {
+
+    private final Animation deletePlaylistAnimation = new Transition() {
         {
             setCycleDuration(Duration.millis(500));
             setInterpolator(Interpolator.EASE_BOTH);
         }
-        protected void interpolate(double frac) {        	    		
+
+        protected void interpolate(double frac) {
             if (frac < 0.5) {
                 cell.setOpacity(1.0 - frac * 2);
             } else {
@@ -108,7 +108,7 @@ public class PlaylistsController implements Initializable, SubView {
         albumColumn.setCellValueFactory(new PropertyValueFactory<>("album"));
         lengthColumn.setCellValueFactory(new PropertyValueFactory<>("length"));
         playsColumn.setCellValueFactory(new PropertyValueFactory<>("playCount"));
-        
+
         tableView.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
             tableView.requestFocus();
             event.consume();
@@ -135,7 +135,7 @@ public class PlaylistsController implements Initializable, SubView {
                 }
             });
 
-            row.setOnMouseClicked(event -> {            	
+            row.setOnMouseClicked(event -> {
                 TableViewSelectionModel<Song> sm = tableView.getSelectionModel();
                 if (event.getClickCount() == 2 && !row.isEmpty()) {
                     play();
@@ -178,7 +178,7 @@ public class PlaylistsController implements Initializable, SubView {
                     }
                 }
             });
-            
+
             row.setOnDragDetected(event -> {
                 Dragboard db = row.startDragAndDrop(TransferMode.ANY);
                 ClipboardContent content = new ClipboardContent();
@@ -200,7 +200,7 @@ public class PlaylistsController implements Initializable, SubView {
 
             return row;
         });
-        
+
         tableView.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (oldSelection != null) {
                 oldSelection.setSelected(false);
@@ -210,7 +210,7 @@ public class PlaylistsController implements Initializable, SubView {
                 selectedSong = newSelection;
             }
         });
-        
+
         // Plays selected song when enter key is pressed.
         tableView.setOnKeyPressed(event -> {
             if (event.getCode().equals(KeyCode.ENTER)) {
@@ -218,25 +218,20 @@ public class PlaylistsController implements Initializable, SubView {
             }
         });
 
-        //ObservableList<Node> playlistBoxChildren = MusicPlayer.getMainController().getPlaylistBox().getChildren();
+        ObservableList<Node> playlistBoxChildren = Bootstrap.getMainController().getPlaylistBox().getChildren();
 
-//        deletePlaylistAnimation.setOnFinished(event -> {
-//            playlistBoxChildren.remove(cell);
-//        });
+        deletePlaylistAnimation.setOnFinished(event -> {
+            playlistBoxChildren.remove(cell);
+        });
     }
-    
+
     @Override
     public void play() {
         Song song = selectedSong;
         ObservableList<Song> songs = selectedPlaylist.getSongs();
-        if (MusicPlayer.isShuffleActive()) {
-            Collections.shuffle(songs);
-            songs.remove(song);
-            songs.add(0, song);
-        }
-//        MusicPlayer.setNowPlayingList(songs);
-//        MusicPlayer.setNowPlaying(song);
-//        MusicPlayer.play();
+        NewPlayer player = NewPlayer.getInstance();
+        player.setNowPlayingList(songs);
+        player.play(song);
     }
 
     void selectPlaylist(Playlist playlist) {
@@ -253,10 +248,10 @@ public class PlaylistsController implements Initializable, SubView {
 
         // Retrieves the songs in the selected play list.
         ObservableList<Song> songs = playlist.getSongs();
-        
+
         // Clears the song table.
         tableView.getSelectionModel().clearSelection();
-        
+
         // Populates the song table with the playlist's songs.
         tableView.setItems(songs);
 
@@ -275,19 +270,20 @@ public class PlaylistsController implements Initializable, SubView {
 
         tableView.setPlaceholder(placeholder);
     }
-    
+
     @Override
-    public void scroll(char letter) {}
+    public void scroll(char letter) {
+    }
 
     @Override
     public Song getSelectedSong() {
         return selectedSong;
     }
-    
+
     Playlist getSelectedPlaylist() {
         return selectedPlaylist;
     }
-    
+
     void deleteSelectedRow() {
         // Retrieves the table view items and the selected item.
         ObservableList<Song> allSongs, selectedSong;
@@ -297,15 +293,15 @@ public class PlaylistsController implements Initializable, SubView {
         // Removes the selected item from the table view.
         selectedSong.forEach(allSongs::remove);
     }
-    
+
     @FXML
     private void playPlaylist() {
         ObservableList<Song> songs = selectedPlaylist.getSongs();
-//        MusicPlayer.setNowPlayingList(songs);
-//        MusicPlayer.setNowPlaying(songs.get(0));
-//        MusicPlayer.play();
+        NewPlayer player = NewPlayer.getInstance();
+        player.setNowPlayingList(songs);
+        player.play();
     }
-    
+
     @FXML
     private void deletePlaylist() {
         if (!deletePlaylistAnimation.getStatus().equals(Status.RUNNING)) {
@@ -328,13 +324,10 @@ public class PlaylistsController implements Initializable, SubView {
             }
 
             deletePlaylistAnimation.play();
-
-            // Deletes the play list from the xml file.
-            //XMLEditor.deletePlaylistFromXML(selectedPlaylist.getId());
+            AppConfig.getInstance().getMusicSource().deletePlaylist(selectedPlaylist.getId());
 
             // Loads the artists view.
             Bootstrap.getMainController().loadView("artists");
-
             // Removes the selected playlist from the library so that it is not reloaded.
 
             // Resets the selected playlist to avoid storing the deleted playlist's data.

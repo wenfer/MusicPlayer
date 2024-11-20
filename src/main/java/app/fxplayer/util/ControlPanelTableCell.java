@@ -1,5 +1,6 @@
 package app.fxplayer.util;
 
+import app.fxplayer.Bootstrap;
 import app.fxplayer.MusicPlayer;
 import app.fxplayer.model.Song;
 import app.fxplayer.views.PlaylistsController;
@@ -35,12 +36,12 @@ public class ControlPanelTableCell<S, T> extends TableCell<S, T> {
 		} else {
 			String fileName;
 			// Selects the correct control panel based on whether the user is in a play list or not.
-/*			if (MusicPlayer.getMainController().getSubViewController() instanceof PlaylistsController) {
+			if (Bootstrap.getMainController().getSubViewController() instanceof PlaylistsController) {
 				fileName = Resources.FXML + "ControlPanelPlaylists.fxml";
 			} else {
 				fileName = Resources.FXML + "ControlPanel.fxml";
-			}*/
-/*			try {
+			}
+			try {
 				Label text = new Label(item.toString());
 				text.setTextOverrun(OverrunStyle.CLIP);
                 FXMLLoader loader = new FXMLLoader(this.getClass().getResource(fileName));
@@ -56,7 +57,7 @@ public class ControlPanelTableCell<S, T> extends TableCell<S, T> {
     			song.selectedProperty().addListener(listener);
             } catch (Exception ex) {
                 ex.printStackTrace();
-            }*/
+            }
 		}
 	}
 }

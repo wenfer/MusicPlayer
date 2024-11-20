@@ -127,20 +127,17 @@ public class MainController implements Initializable, IntellitypeListener {
         });
         shuffleButton.setOnMouseClicked(x -> {
             sideBar.requestFocus();
-            //MusicPlayer.toggleShuffle();
-            log.info("not set");
-            shuffleButton.pseudoClassStateChanged(active, MusicPlayer.isShuffleActive());
+            NewPlayer.getInstance().toggleShuffle();
+            shuffleButton.pseudoClassStateChanged(active, NewPlayer.getInstance().isShuffleActive());
         });
 
         timeSlider.setFocusTraversable(false);
         timeSlider.valueChangingProperty().addListener(
                 (slider, wasChanging, isChanging) -> {
-
                     if (wasChanging) {
-
                         int seconds = (int) Math.round(timeSlider.getValue() / 4.0);
                         timeSlider.setValue(seconds * 4);
-                        //MusicPlayer.seek(seconds);
+                        NewPlayer.getInstance().seek(seconds);
                     }
                 }
         );
@@ -154,7 +151,7 @@ public class MainController implements Initializable, IntellitypeListener {
 
                         int seconds = (int) Math.round(current / 4.0);
                         timeSlider.setValue(seconds * 4);
-                        // MusicPlayer.seek(seconds);
+                        NewPlayer.getInstance().seek(seconds);
                     }
                 }
         );

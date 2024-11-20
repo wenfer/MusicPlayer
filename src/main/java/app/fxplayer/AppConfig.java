@@ -1,7 +1,5 @@
 package app.fxplayer;
 
-import app.fxplayer.model.Album;
-import app.fxplayer.model.Artist;
 import app.fxplayer.model.Settings;
 import app.fxplayer.source.MusicSource;
 import app.fxplayer.source.SonicClientSource;
@@ -20,8 +18,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static app.fxplayer.DbConstants.SOURCE_INFO;
-import static app.fxplayer.DbConstants.SOURCE_SERVER_URL;
+import static app.fxplayer.Constants.SOURCE_INFO;
 
 
 @Slf4j

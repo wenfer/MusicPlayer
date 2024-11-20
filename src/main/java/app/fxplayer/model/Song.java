@@ -20,31 +20,34 @@ public final class Song implements Comparable<Song> {
     private final SimpleStringProperty album;
     private final SimpleStringProperty length;
     private final SimpleStringProperty format;
-    //private long lengthInSeconds;
+    private final long lengthInSeconds;
     private final int trackNumber;
     private final int discNumber;
     private final SimpleIntegerProperty playCount;
     private final SimpleBooleanProperty playing;
     private final SimpleBooleanProperty selected;
 
-    private String artistId;
+    private final long size;
+
+    private final String artistId;
 
     public Song(String id, String title, String artist, String artistId, int length,
-                int trackNumber, int discNumber, int playCount, Album album) {
-
-//        if (album == null) {
-//            album = "Unknown Album";
-//        }
+                int trackNumber, int discNumber, int playCount,long size, Album album) {
         this.artistId = artistId;
         if (artist == null) {
             artist = "Unknown Artist";
         }
         this.format = new SimpleStringProperty("mp3");
         this.id = id;
+        this.size = size;
         this.title = new SimpleStringProperty(title);
         this.artist = new SimpleStringProperty(artist);
-        this.album = new SimpleStringProperty(album.getTitle());
-//        this.lengthInSeconds = length.getSeconds();
+        if (album == null) {
+            this.album = new SimpleStringProperty("Unknown Album");
+        } else {
+            this.album = new SimpleStringProperty(album.getTitle());
+        }
+        this.lengthInSeconds = length;
         Duration duration = Duration.of(length, ChronoUnit.SECONDS);
         long seconds = length % 60;
         this.length = new SimpleStringProperty(duration.toMinutes() + ":" + (seconds < 10 ? "0" + seconds : seconds));

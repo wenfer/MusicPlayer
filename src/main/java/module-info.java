@@ -4,8 +4,6 @@ module app.musicplayer {
     requires javafx.media;
     requires static lombok;
     requires java.desktop;
-    requires okhttp3;
-    requires jaudiotagger;
     requires jintellitype;
     requires java.logging;
     requires ch.qos.logback.core;
@@ -19,7 +17,6 @@ module app.musicplayer {
     requires jdk.jdi;
     requires org.apache.commons.codec;
     requires org.xerial.sqlitejdbc;
-    requires kotlin.stdlib;
     requires cn.hutool.core;
 
     opens app.fxplayer to javafx.fxml;

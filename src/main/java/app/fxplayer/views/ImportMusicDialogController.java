@@ -15,11 +15,10 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.SocketException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-import static app.fxplayer.DbConstants.SOURCE_INFO;
+import static app.fxplayer.Constants.SOURCE_INFO;
 
 /**
  * Dialog to import music library.

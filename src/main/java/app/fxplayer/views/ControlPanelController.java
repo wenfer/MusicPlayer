@@ -5,6 +5,7 @@ import java.util.ResourceBundle;
 
 import app.fxplayer.Bootstrap;
 import app.fxplayer.MusicPlayer;
+import app.fxplayer.NewPlayer;
 import app.fxplayer.model.Playlist;
 import app.fxplayer.model.Song;
 import app.fxplayer.util.SubView;
@@ -58,10 +59,10 @@ public class ControlPanelController implements Initializable {
 		double y = mouseEvent.getScreenY();
 
 		// Retrieves the selected song to add to the desired playlist.
-/*
-		Song selectedSong = MusicPlayer.getMainController().getSubViewController().getSelectedSong();
 
-		ObservableList<Playlist> playlists = Library.getPlaylists();
+		Song selectedSong = Bootstrap.getMainController().getSubViewController().getSelectedSong();
+
+		ObservableList<Playlist> playlists = FXCollections.observableArrayList(NewPlayer.getInstance().getPlaylists());
 
 		// Retrieves all the playlist titles to create menu items.
 		ObservableList<String> playlistTitles = FXCollections.observableArrayList();
@@ -78,12 +79,12 @@ public class ControlPanelController implements Initializable {
 		MenuItem playing = new MenuItem("Playing");
 		playing.setStyle("-fx-text-fill: black");
 		playing.setOnAction(e1 -> {
-			MusicPlayer.addSongToNowPlayingList(selectedSong);
+			NewPlayer.getInstance().play(selectedSong);
 		});
 
 		contextMenu.getItems().add(playing);
 
-		if (playlistTitles.size() > 0) {
+		if (!playlistTitles.isEmpty()) {
 			SeparatorMenuItem item = new SeparatorMenuItem();
 			item.getContent().setStyle(
 					"-fx-border-width: 1 0 0 0; " +
@@ -115,7 +116,7 @@ public class ControlPanelController implements Initializable {
 		contextMenu.setOpacity(0);
 		contextMenu.show(playButton, x, y);
 		showMenuAnimation.play();
-*/
+
 
 		e.consume();
 	}

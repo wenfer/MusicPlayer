@@ -1,7 +1,9 @@
 package app.fxplayer.views;
 
 import app.fxplayer.AppConfig;
+import app.fxplayer.Bootstrap;
 import app.fxplayer.MusicPlayer;
+import app.fxplayer.NewPlayer;
 import app.fxplayer.model.Album;
 import app.fxplayer.model.Artist;
 import app.fxplayer.model.Song;
@@ -229,112 +231,49 @@ public class ArtistsMainController implements Initializable, SubView {
                     albums.add(album);
                     songs.addAll(album.getSongs());
                 }
-
-                if (MusicPlayer.isShuffleActive()) {
-                    Collections.shuffle(songs);
-                } else {
-                    Collections.sort(songs, (first, second) -> {
-
-                        Album firstAlbum = albums.stream().filter(x -> x.getTitle().equals(first.getAlbum())).findFirst().get();
-                        Album secondAlbum = albums.stream().filter(x -> x.getTitle().equals(second.getAlbum())).findFirst().get();
-                        if (firstAlbum.compareTo(secondAlbum) != 0) {
-                            return firstAlbum.compareTo(secondAlbum);
-                        } else {
-                            return first.compareTo(second);
-                        }
-                    });
-                }
+                NewPlayer player = NewPlayer.getInstance();
+                songs.sort((first, second) -> {
+                    Album firstAlbum = albums.stream().filter(x -> x.getTitle().equals(first.getAlbum())).findFirst().get();
+                    Album secondAlbum = albums.stream().filter(x -> x.getTitle().equals(second.getAlbum())).findFirst().get();
+                    if (firstAlbum.compareTo(secondAlbum) != 0) {
+                        return firstAlbum.compareTo(secondAlbum);
+                    } else {
+                        return first.compareTo(second);
+                    }
+                });
 
                 Song song = songs.get(0);
-  /*              MusicPlayer.setNowPlayingList(songs);
-                MusicPlayer.setNowPlaying(song);
-                MusicPlayer.play();*/
+                player.setNowPlayingList(songs);
+                player.play(song);
 
             } else {
-
-                Task<Void> task = new Task<Void>() {
-                    @Override
-                    protected Void call() throws Exception {
-                        Platform.runLater(() -> {
-                            subViewRoot.setVisible(false);
-                            selectedArtist = artistList.getSelectionModel().getSelectedItem();
-                            showAllSongs(selectedArtist, false);
-                            artistLabel.setText(selectedArtist.getTitle());
-                            albumList.setPrefWidth(albumList.getItems().size() * 150 + 2);
-                            albumList.setMaxWidth(albumList.getItems().size() * 150 + 2);
-                            albumList.scrollTo(0);
-                        });
-                        return null;
-                    }
-                };
-
-                task.setOnSucceeded(x -> Platform.runLater(() -> {
-                    subViewRoot.setVisible(true);
-                    artistLoadAnimation.play();
-                }));
-
-                Thread thread = new Thread(task);
-
+                Thread thread = getThread();
                 artistUnloadAnimation.setOnFinished(x -> thread.start());
-
                 artistUnloadAnimation.play();
             }
         });
 
         albumList.setOnMouseClicked(event -> {
-
             Album album = albumList.getSelectionModel().getSelectedItem();
-
             if (event.getClickCount() == 2) {
-
                 if (album != selectedAlbum) {
                     selectAlbum(album);
                 }
-
                 ArrayList<Song> songs = selectedAlbum.getSongs();
-
-                if (MusicPlayer.isShuffleActive()) {
-                    Collections.shuffle(songs);
-                } else {
-                    Collections.sort(songs);
-                }
-
-/*                MusicPlayer.setNowPlayingList(songs);
-                MusicPlayer.setNowPlaying(songs.get(0));
-                MusicPlayer.play();*/
-
+                NewPlayer player = NewPlayer.getInstance();
+                Collections.sort(songs);
+                player.setNowPlayingList(songs);
+                player.play();
             } else {
-
-                Task<Void> task = new Task<Void>() {
-                    @Override
-                    protected Void call() throws Exception {
-                        Platform.runLater(() -> {
-                            songTable.setVisible(false);
-                            selectAlbum(album);
-                        });
-                        return null;
-                    }
-                };
-
-                task.setOnSucceeded(x -> Platform.runLater(() -> {
-                    songTable.setVisible(true);
-                    albumLoadAnimation.play();
-                }));
-
-                Thread thread = new Thread(task);
-
+                Thread thread = getThread(album);
                 albumUnloadAnimation.setOnFinished(x -> thread.start());
-
                 albumUnloadAnimation.play();
             }
         });
 
         songTable.setRowFactory(x -> {
-
             TableRow<Song> row = new TableRow<>();
-
             PseudoClass playing = PseudoClass.getPseudoClass("playing");
-
             ChangeListener<Boolean> changeListener = (obs, oldValue, newValue) -> {
                 row.pseudoClassStateChanged(playing, newValue);
             };
@@ -451,6 +390,50 @@ public class ArtistsMainController implements Initializable, SubView {
         artistListLoadAnimation.play();
     }
 
+    private Thread getThread() {
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() {
+                Platform.runLater(() -> {
+                    subViewRoot.setVisible(false);
+                    selectedArtist = artistList.getSelectionModel().getSelectedItem();
+                    showAllSongs(selectedArtist, false);
+                    artistLabel.setText(selectedArtist.getTitle());
+                    albumList.setPrefWidth(albumList.getItems().size() * 150 + 2);
+                    albumList.setMaxWidth(albumList.getItems().size() * 150 + 2);
+                    albumList.scrollTo(0);
+                });
+                return null;
+            }
+        };
+
+        task.setOnSucceeded(x -> Platform.runLater(() -> {
+            subViewRoot.setVisible(true);
+            artistLoadAnimation.play();
+        }));
+        return new Thread(task);
+    }
+
+    private Thread getThread(Album album) {
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() {
+                Platform.runLater(() -> {
+                    songTable.setVisible(false);
+                    selectAlbum(album);
+                });
+                return null;
+            }
+        };
+
+        task.setOnSucceeded(x -> Platform.runLater(() -> {
+            songTable.setVisible(true);
+            albumLoadAnimation.play();
+        }));
+
+        return new Thread(task);
+    }
+
     void selectAlbum(Album album) {
 
         if (selectedAlbum == album) {
@@ -545,19 +528,14 @@ public class ArtistsMainController implements Initializable, SubView {
     }
 
     private void showAllSongs(Artist artist, boolean fromMainController) {
-
         ObservableList<Album> albums = FXCollections.observableArrayList();
         ObservableList<Song> songs = FXCollections.observableArrayList();
-
         for (Album album : AppConfig.getInstance().getMusicSource().listAlbumsByArtist(artist.getId())) {
-
             albums.add(album);
-
             songs.addAll(album.getSongs());
         }
 
-        Collections.sort(songs, (first, second) -> {
-
+        songs.sort((first, second) -> {
             Album firstAlbum = albums.stream().filter(x -> x.getTitle().equals(first.getAlbum())).findFirst().get();
             Album secondAlbum = albums.stream().filter(x -> x.getTitle().equals(second.getAlbum())).findFirst().get();
             if (firstAlbum.compareTo(secondAlbum) != 0) {
@@ -583,6 +561,25 @@ public class ArtistsMainController implements Initializable, SubView {
         songTable.setMinHeight(0);
         songTable.setPrefHeight(0);
         songTable.setVisible(true);
+        Animation songTableLoadAnimation = getAnimation(songs);
+
+        new Thread(() -> {
+            try {
+                if (fromMainController) {
+                    Bootstrap.getMainController().getLatch().await();
+                    Bootstrap.getMainController().resetLatch();
+                } else {
+                    loadedLatch.await();
+                    loadedLatch = new CountDownLatch(1);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            songTableLoadAnimation.play();
+        }).start();
+    }
+
+    private Animation getAnimation(ObservableList<Song> songs) {
         double height = (songs.size() + 1) * 50 + 2;
         Animation songTableLoadAnimation = new Transition() {
             {
@@ -597,21 +594,7 @@ public class ArtistsMainController implements Initializable, SubView {
         };
 
         songTableLoadAnimation.setOnFinished(x -> loadedLatch.countDown());
-
-        new Thread(() -> {
-/*        	try {
-        		if (fromMainController) {
-        			MusicPlayer.getMainController().getLatch().await();
-        			MusicPlayer.getMainController().resetLatch();
-        		} else {
-        			loadedLatch.await();
-        			loadedLatch = new CountDownLatch(1);
-        		}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}*/
-            songTableLoadAnimation.play();
-        }).start();
+        return songTableLoadAnimation;
     }
 
     @Override
@@ -627,35 +610,26 @@ public class ArtistsMainController implements Initializable, SubView {
                 songs.addAll(album.getSongs());
             }
         }
+        NewPlayer player = NewPlayer.getInstance();
 
-        if (MusicPlayer.isShuffleActive()) {
-            Collections.shuffle(songs);
-            songs.remove(song);
-            songs.add(0, song);
-        } else {
-            Collections.sort(songs, (first, second) -> {
-                Album firstAlbum = first.getAlbumObj();
-                Album secondAlbum = second.getAlbumObj();
-                if (firstAlbum.compareTo(secondAlbum) != 0) {
-                    return firstAlbum.compareTo(secondAlbum);
-                } else {
-                    return first.compareTo(second);
-                }
-            });
-        }
+        songs.sort((first, second) -> {
+            Album firstAlbum = first.getAlbumObj();
+            Album secondAlbum = second.getAlbumObj();
+            if (firstAlbum.compareTo(secondAlbum) != 0) {
+                return firstAlbum.compareTo(secondAlbum);
+            } else {
+                return first.compareTo(second);
+            }
+        });
 
-/*        MusicPlayer.setNowPlayingList(songs);
-        MusicPlayer.setNowPlaying(song);
-        MusicPlayer.play();*/
+        player.setNowPlayingList(songs);
+        player.play(song);
     }
 
     @Override
     public void scroll(char letter) {
-
         ObservableList<Artist> artistListItems = artistList.getItems();
-
         int selectedCell = 0;
-
         for (Artist artist : artistListItems) {
             // Removes article from artist title and compares it to selected letter.
             String artistTitle = artist.getTitle();
@@ -683,16 +657,12 @@ public class ArtistsMainController implements Initializable, SubView {
     }
 
     private String removeArticle(String title) {
-
         String[] arr = title.split(" ", 2);
-
         if (arr.length < 2) {
             return title;
         } else {
-
             String firstWord = arr[0];
             String theRest = arr[1];
-
             return switch (firstWord) {
                 case "A", "An", "The" -> theRest;
                 default -> title;

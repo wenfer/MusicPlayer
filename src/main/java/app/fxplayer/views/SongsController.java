@@ -1,14 +1,8 @@
 package app.fxplayer.views;
 
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.ResourceBundle;
-
 import app.fxplayer.AppConfig;
 import app.fxplayer.MusicPlayer;
-
-import app.fxplayer.model.Playlist;
+import app.fxplayer.NewPlayer;
 import app.fxplayer.model.Song;
 import app.fxplayer.util.ClippedTableCell;
 import app.fxplayer.util.ControlPanelTableCell;
@@ -23,21 +17,17 @@ import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.control.ScrollBar;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.TransferMode;
+import javafx.scene.input.*;
 import javafx.util.Duration;
 import lombok.Getter;
+
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.ResourceBundle;
 
 public class SongsController implements Initializable, SubView {
 
@@ -260,17 +250,11 @@ public class SongsController implements Initializable, SubView {
 
     @Override
     public void play() {
-
         Song song = selectedSong;
         ObservableList<Song> songList = tableView.getItems();
-        if (MusicPlayer.isShuffleActive()) {
-            Collections.shuffle(songList);
-            songList.remove(song);
-            songList.add(0, song);
-        }
-//        MusicPlayer.setNowPlayingList(songList);
-//        MusicPlayer.setNowPlaying(song);
-//        MusicPlayer.play();
+        NewPlayer player = NewPlayer.getInstance();
+        player.setNowPlayingList(songList);
+        player.play(song);
     }
 
     @Override
@@ -348,7 +332,7 @@ public class SongsController implements Initializable, SubView {
         scrollAnimation.play();
     }
 
-    private  Animation getAnimation(int selectedCell, int selectedLetterCount, ObservableList<Song> songTableItems) {
+    private Animation getAnimation(int selectedCell, int selectedLetterCount, ObservableList<Song> songTableItems) {
         double startVvalue = scrollBar.getValue();
         double finalVvalue;
 

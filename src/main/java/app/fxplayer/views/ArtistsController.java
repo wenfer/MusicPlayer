@@ -1,13 +1,8 @@
 package app.fxplayer.views;
 
-import java.net.URL;
-import java.util.Collections;
-import java.util.ResourceBundle;
-
 import app.fxplayer.AppConfig;
 import app.fxplayer.Bootstrap;
 import app.fxplayer.MusicPlayer;
-import app.fxplayer.NewPlayer;
 import app.fxplayer.model.Artist;
 import app.fxplayer.model.Song;
 import app.fxplayer.util.SubView;
@@ -32,21 +27,25 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
+import lombok.extern.slf4j.Slf4j;
 
+import java.net.URL;
+import java.util.Collections;
+import java.util.ResourceBundle;
+
+@Slf4j
 public class ArtistsController implements Initializable, SubView {
 
-    @FXML private FlowPane grid;
+    @FXML
+    private FlowPane grid;
 
-    
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         ObservableList<Artist> artists = FXCollections.observableArrayList(AppConfig.getInstance().getMusicSource().listArtists());
         Collections.sort(artists);
-
         int limit = Math.min(artists.size(), 25);
-
         for (int i = 0; i < limit; i++) {
-
             Artist artist = artists.get(i);
             grid.getChildren().add(createCell(artist));
         }
@@ -56,12 +55,12 @@ public class ArtistsController implements Initializable, SubView {
 
         new Thread(() -> {
 
-        	try {
-        		Thread.sleep(1000);
-        	} catch (Exception ex) {
-        		ex.printStackTrace();
-        	}
-        	
+            try {
+                Thread.sleep(1000);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
             for (int j = 25; j < artists.size(); j++) {
                 Artist artist = artists.get(j);
                 Platform.runLater(() -> grid.getChildren().add(createCell(artist)));
@@ -69,7 +68,7 @@ public class ArtistsController implements Initializable, SubView {
 
         }).start();
     }
-    
+
     private VBox createCell(Artist artist) {
 
         VBox cell = new VBox();
@@ -104,37 +103,36 @@ public class ArtistsController implements Initializable, SubView {
             MainController mainController = Bootstrap.getMainController();
             ArtistsMainController artistsMainController = (ArtistsMainController) mainController.loadView("ArtistsMain");
             VBox artistCell = (VBox) event.getSource();
-            Artist a = (Artist)((Label) artistCell.getChildren().get(1)).getUserData();
+            Artist a = (Artist) artistCell.getChildren().get(1).getUserData();
             artistsMainController.selectArtist(a);
         });
 
         cell.setOnDragDetected(event -> {
-        	PseudoClass pressed = PseudoClass.getPseudoClass("pressed");
-        	cell.pseudoClassStateChanged(pressed, false);
-        	Dragboard db = cell.startDragAndDrop(TransferMode.ANY);
-        	ClipboardContent content = new ClipboardContent();
+            PseudoClass pressed = PseudoClass.getPseudoClass("pressed");
+            cell.pseudoClassStateChanged(pressed, false);
+            Dragboard db = cell.startDragAndDrop(TransferMode.ANY);
+            ClipboardContent content = new ClipboardContent();
             content.putString("Artist");
             db.setContent(content);
-        	MusicPlayer.setDraggedItem(artist);
-        	db.setDragView(cell.snapshot(null, null), cell.widthProperty().divide(2).get(), cell.heightProperty().divide(2).get());
+            MusicPlayer.setDraggedItem(artist);
+            db.setDragView(cell.snapshot(null, null), cell.widthProperty().divide(2).get(), cell.heightProperty().divide(2).get());
             event.consume();
         });
 
         return cell;
     }
-    
+
     @Override
-    public void play() {}
-    
+    public void play() {
+        log.error("not bind event for artists play");
+    }
+
     @Override
     public void scroll(char letter) {
-    	
-    	int index = 0;
-    	double cellHeight = 0;
-    	ObservableList<Node> children = grid.getChildren();
-
+        int index = 0;
+        double cellHeight = 0;
+        ObservableList<Node> children = grid.getChildren();
         for (Node node : children) {
-
             VBox cell = (VBox) node;
             cellHeight = cell.getHeight();
             Label label = (Label) cell.getChildren().get(1);
@@ -143,29 +141,32 @@ public class ArtistsController implements Initializable, SubView {
                 index++;
             }
         }
-    	
-    	ScrollPane scrollpane = Bootstrap.getMainController().getScrollPane();
+        Animation scrollAnimation = getAnimation(index, cellHeight);
+        scrollAnimation.play();
+    }
 
-    	double row = (index / 5) * cellHeight;
-    	double finalVvalue = row / (grid.getHeight() - scrollpane.getHeight());
-    	double startVvalue = scrollpane.getVvalue();
-    	
-    	Animation scrollAnimation = new Transition() {
+    private Animation getAnimation(int index, double cellHeight) {
+        ScrollPane scrollpane = Bootstrap.getMainController().getScrollPane();
+
+        double row = ((double) index / 5) * cellHeight;
+        double finalVvalue = row / (grid.getHeight() - scrollpane.getHeight());
+        double startVvalue = scrollpane.getVvalue();
+
+        return new Transition() {
             {
                 setCycleDuration(Duration.millis(500));
             }
+
             protected void interpolate(double frac) {
                 double vValue = startVvalue + ((finalVvalue - startVvalue) * frac);
                 scrollpane.setVvalue(vValue);
             }
         };
-        
-       scrollAnimation.play();
     }
-    
+
     private String removeArticle(String title) {
 
-        String arr[] = title.split(" ", 2);
+        String[] arr = title.split(" ", 2);
 
         if (arr.length < 2) {
             return title;
@@ -180,8 +181,8 @@ public class ArtistsController implements Initializable, SubView {
             };
         }
     }
-    
+
     public Song getSelectedSong() {
-    	return null;
+        return null;
     }
 }

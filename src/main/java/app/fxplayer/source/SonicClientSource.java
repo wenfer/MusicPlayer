@@ -4,23 +4,24 @@ import app.fxplayer.model.Album;
 import app.fxplayer.model.Artist;
 import app.fxplayer.model.Playlist;
 import app.fxplayer.model.Song;
+import cn.hutool.core.io.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.beardbot.subsonic.client.Subsonic;
 import net.beardbot.subsonic.client.SubsonicPreferences;
-import net.beardbot.subsonic.client.api.lists.AlbumListParams;
-import net.beardbot.subsonic.client.api.lists.AlbumListType;
+import net.beardbot.subsonic.client.api.playlist.UpdatePlaylistParams;
 import net.beardbot.subsonic.client.base.SubsonicIncompatibilityException;
 import org.json.JSONObject;
 import org.subsonic.restapi.*;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Slf4j
 public class SonicClientSource implements MusicSource {
-
-    private final SubsonicPreferences preferences;
 
     private final Subsonic subsonic;
 
@@ -30,13 +31,14 @@ public class SonicClientSource implements MusicSource {
 
     private Map<String, Artist> artistCache = null;
 
+    private final ExecutorService downloadCoverArtExecutor = Executors.newCachedThreadPool();
 
     private final Map<String, Playlist> playlistCache = new HashMap<>();
 
     private final Map<String, Song> songsCache = new HashMap<>();
 
     public SonicClientSource(String name, String serverUrl, String username, String password, int streamBitRate) {
-        this.preferences = new SubsonicPreferences(serverUrl, username, password);
+        SubsonicPreferences preferences = new SubsonicPreferences(serverUrl, username, password);
         this.name = name;
         preferences.setStreamBitRate(streamBitRate);
         preferences.setClientName(name);
@@ -56,16 +58,22 @@ public class SonicClientSource implements MusicSource {
         if (this.albumListCache == null || this.albumListCache.isEmpty()) {
             AlbumList albumList = subsonic.lists().getAlbumList();
             log.info("get album result {}", JSONObject.valueToString(albumList.getAlbums()));
-            this.albumListCache = albumList.getAlbums().stream().map(child -> {
-                Album album = new Album();
-                album.setId(child.getId());
-                album.setSource(this.name);
-                album.setArtist(child.getArtist());
-                album.setTitle(child.getTitle());
-                return album;
-            }).collect(Collectors.toMap(Album::getId, album -> album));
+            this.albumListCache = albumList.getAlbums().stream()
+                    .map(child -> {
+                        downloadCoverArtExecutor.submit(() -> this.downloadCoverArt(child.getCoverArtId()));
+                        return new Album(child.getId(), child.getTitle(), this.name, child.getArtist(),
+                                child.getArtistId(), child.getCoverArtId());
+                    })
+                    .collect(Collectors.toMap(Album::getId, album -> album));
         }
         return this.albumListCache;
+    }
+
+    private void downloadCoverArt(String coverArtId) {
+        File tempFile = new File(FileUtil.getTmpDirPath(), "cover_" + coverArtId + ".tmp");
+        if (!tempFile.exists()) {
+            FileUtil.writeFromStream(subsonic.media().getCoverArt(coverArtId), tempFile);
+        }
     }
 
 
@@ -91,6 +99,7 @@ public class SonicClientSource implements MusicSource {
                 child.getTrack() == null ? 1 : child.getTrack(),
                 child.getDiscNumber() == null ? 1 : child.getDiscNumber(),
                 child.getPlayCount() == null ? 0 : child.getPlayCount().intValue(),
+                child.getSize(),
                 album);
     }
 
@@ -100,6 +109,7 @@ public class SonicClientSource implements MusicSource {
         AlbumWithSongsID3 withSongsID3 = this.subsonic.browsing().getAlbum(album.getId());
         return withSongsID3.getSongs().stream().map(child -> {
             log.info("song info :{}", new JSONObject(child));
+            downloadCoverArtExecutor.submit(() -> this.downloadCoverArt(child.getCoverArtId()));
             return childToSong(child, album);
         }).collect(Collectors.toList());
     }
@@ -119,12 +129,11 @@ public class SonicClientSource implements MusicSource {
         if (this.artistCache == null || this.artistCache.isEmpty()) {
             this.artistCache = new HashMap<>();
             List<IndexID3> artistList = subsonic.browsing().getArtists();
-            artistList.forEach(indexID3 -> {
-                indexID3.getArtists().forEach(artistID3 -> {
-                    Artist artist = new Artist(artistID3.getId(), artistID3.getName(), artistID3.getCoverArtId());
-                    this.artistCache.put(artistID3.getId(), artist);
-                });
-            });
+            artistList.forEach(indexID3 -> indexID3.getArtists().forEach(artistID3 -> {
+                downloadCoverArtExecutor.submit(() -> this.downloadCoverArt(artistID3.getCoverArtId()));
+                Artist artist = new Artist(artistID3.getId(), artistID3.getName(), artistID3.getCoverArtId());
+                this.artistCache.put(artistID3.getId(), artist);
+            }));
         }
         return this.artistCache;
     }
@@ -182,12 +191,33 @@ public class SonicClientSource implements MusicSource {
 
     @Override
     public List<Album> listAlbumsByArtist(String artistId) {
-        subsonic.searching().
+        return getAlbumMap().values().stream().filter(album -> album.getArtistId().equals(artistId)).collect(Collectors.toList());
+    }
 
-        AlbumListParams albumListParams = AlbumListParams.create();
-        albumListParams.type(AlbumListType.ALPHABETICAL_BY_ARTIST);
-        subsonic.lists().getAlbumList()
-        return List.of();
+    @Override
+    public File getCoverArt(String coverArtId) {
+        File tempFile = new File(FileUtil.getTmpDirPath(), "cover_" + coverArtId + ".tmp");
+        if (tempFile.exists()) {
+            return tempFile;
+        }
+        FileUtil.writeFromStream(subsonic.media().getCoverArt(coverArtId), tempFile);
+        return tempFile;
+    }
+
+    @Override
+    public void deleteSongFromPlaylist(String selectedPlayListId, String songId) {
+        Playlist playlist = playlistCache.get(selectedPlayListId);
+        int index = playlist.removeSong(songId);
+        if (index >= 0) {
+            UpdatePlaylistParams updatePlaylistParams = UpdatePlaylistParams.create().removeSong(index);
+            subsonic.playlists().updatePlaylist(selectedPlayListId, updatePlaylistParams);
+        }
+    }
+
+    @Override
+    public void deletePlaylist(String playlistId) {
+        this.playlistCache.remove(playlistId);
+        downloadCoverArtExecutor.submit(() -> subsonic.playlists().deletePlaylist(playlistId));
     }
 
 

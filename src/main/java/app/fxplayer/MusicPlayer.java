@@ -2,26 +2,13 @@ package app.fxplayer;
 
 import app.fxplayer.model.*;
 import app.fxplayer.source.MusicSource;
-import app.fxplayer.views.ImportMusicDialogController;
 import app.fxplayer.views.MainController;
-import app.fxplayer.util.Resources;
-import javafx.application.Platform;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.media.MediaPlayer;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-import javafx.util.Duration;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.*;
 import java.util.*;
-
-import static app.fxplayer.DbConstants.SOURCE_SERVER_URL;
 
 @Slf4j
 public class MusicPlayer{
@@ -45,7 +32,6 @@ public class MusicPlayer{
     private static int timerCounter;
     private static int secondsPlayed;
     private static boolean isLoopActive = false;
-    private static boolean isShuffleActive = false;
     private static boolean isMuted = false;
     @Setter
     @Getter
@@ -68,24 +54,7 @@ public class MusicPlayer{
 
 
 
-/*    private static class TimeUpdater extends TimerTask {
-        private int length = (int) getNowPlaying().getLengthInSeconds() * 4;
 
-        @Override
-        public void run() {
-            Platform.runLater(() -> {
-                if (timerCounter < length) {
-                    if (++timerCounter % 4 == 0) {
-                        mainController.updateTimeLabels();
-                        secondsPlayed++;
-                    }
-                    if (!mainController.isTimeSliderPressed()) {
-                        mainController.updateTimeSlider();
-                    }
-                }
-            });
-        }
-    }*/
 
     /**
      * Plays selected song.
@@ -181,37 +150,7 @@ public class MusicPlayer{
         return isLoopActive;
     }
 
-//    public static void toggleShuffle() {
-//
-//        isShuffleActive = !isShuffleActive;
-//
-//        if (isShuffleActive) {
-//            Collections.shuffle(nowPlayingList);
-//        } else {
-//            Collections.sort(nowPlayingList, (first, second) -> {
-//                int result = Library.getAlbum(first.getAlbum()).compareTo(Library.getAlbum(second.getAlbum()));
-//                if (result != 0) {
-//                    return result;
-//                }
-//                result = Library.getAlbum(first.getAlbum()).compareTo(Library.getAlbum(second.getAlbum()));
-//                if (result != 0) {
-//                    return result;
-//                }
-//                result = first.compareTo(second);
-//                return result;
-//            });
-//        }
-//
-//        nowPlayingIndex = nowPlayingList.indexOf(nowPlaying);
-//
-//        if (mainController.getSubViewController() instanceof NowPlayingController) {
-//            mainController.loadView("nowPlaying");
-//        }
-//    }
 
-    public static boolean isShuffleActive() {
-        return isShuffleActive;
-    }
 
     /**
      * Gets currently playing song list.
@@ -259,9 +198,7 @@ public class MusicPlayer{
 //            mediaPlayer.volumeProperty().bind(mainController.getVolumeSlider().valueProperty().divide(200));
 //            mediaPlayer.setOnEndOfMedia(new SongSkipper());
 //            mediaPlayer.setMute(isMuted);
-//            mainController.updateNowPlayingButton();
-//            mainController.initializeTimeSlider();
-//            mainController.initializeTimeLabels();
+
 //        }
 //    }
 

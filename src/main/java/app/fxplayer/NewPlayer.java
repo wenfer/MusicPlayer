@@ -1,17 +1,24 @@
 package app.fxplayer;
 
+import app.fxplayer.enums.PlayMode;
 import app.fxplayer.model.Album;
 import app.fxplayer.model.Playlist;
 import app.fxplayer.model.Song;
+import app.fxplayer.views.MainController;
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.thread.ThreadUtil;
+import javafx.application.Platform;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
+import javafx.util.Duration;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -20,16 +27,33 @@ public class NewPlayer {
 
     private static NewPlayer instance;
 
+    /**
+     * 随机播放
+     */
+    private PlayMode mode = PlayMode.NORMAL;
+
     @Getter
-    private final List<Song> nowPlayingList = new ArrayList<>();
+    private List<Song> nowPlayingList = new ArrayList<>();
+
+    private List<Integer> shuffleSequence = null;
 
     private final AppConfig appConfig = AppConfig.getInstance();
 
     private int nowPlayingIndex = 0;
 
     private MediaPlayer mediaPlayer;
+
+    private int timerCounter;
+
+    private Timer timer;
+
     private final ExecutorService downloadThread = Executors.newSingleThreadExecutor();
-    private final ExecutorService playThread = Executors.newSingleThreadExecutor();
+
+    //private final ExecutorService playThread = Executors.newSingleThreadExecutor();
+
+    private boolean mute;
+    private DownloadTask downloadTask;
+    private int secondsPlayed;
 
 
     private NewPlayer() {
@@ -49,16 +73,32 @@ public class NewPlayer {
     }
 
     public void play(Song song) {
+        if (!this.nowPlayingList.isEmpty()) {
+            int i = this.nowPlayingList.indexOf(song);
+            if (i > -1) {
+                this.nowPlayingIndex = i;
+                this.play();
+                return;
+            }
+        }
         this.nowPlayingList.add(song);
-        this.nowPlayingIndex = this.nowPlayingList.size() + 1;
-        this.playAndCache(song);
+        if (this.mode == PlayMode.SHUFFLE) {
+            this.shuffleSequence.add(this.nowPlayingList.size());
+            Collections.shuffle(this.shuffleSequence);
+            this.nowPlayingIndex = shuffleSequence.indexOf(this.nowPlayingList.size() - 1);
+        } else {
+            this.nowPlayingIndex = this.nowPlayingList.size() - 1;
+        }
+        this.play();
     }
 
-    public void play() {
-        if (this.nowPlayingList.isEmpty()) {
-            throw new RuntimeException("播放列表为空");
+    public void pause() {
+        if (isPlaying()) {
+            mediaPlayer.pause();
+            timer.cancel();
+            timer = new Timer();
+            Bootstrap.getMainController().updatePlayPauseIcon(false);
         }
-        this.playAndCache(this.nowPlayingList.get(this.nowPlayingIndex));
     }
 
     public Song nowPlaying() {
@@ -84,58 +124,130 @@ public class NewPlayer {
 
     }
 
-
-    private void playAndCache(Song song) {
-
-        downloadThread.execute(() -> {
-            InputStream stream = null;
-            try {
-                song.setPlaying(true);
-                stream = appConfig.getMusicSource().stream(song);
-                File tempFile = FileUtil.createTempFile();
-                // 获取输入流
-                InputStream inputStream = new BufferedInputStream(stream);
-                FileOutputStream outputStream = new FileOutputStream(tempFile);
-                log.info("开始播放音乐:{}  缓存路径:{}", song.getTitle(), tempFile.getAbsolutePath());
-                byte[] buffer = new byte[4096];
-                int bytesRead;
-                boolean startedPlaying = false;
-
-                while ((bytesRead = inputStream.read(buffer)) != -1) {
-                    // 写入本地文件
-                    outputStream.write(buffer, 0, bytesRead);
-
-                    // 如果文件达到一定大小，就开始播放
-                    if (!startedPlaying && tempFile.length() > 100_000) { // 例如 100 KB
-                        startedPlaying = true;
-                        playThread.execute(() -> {
-                            Media media = new Media(tempFile.toURI().toString());
-                            mediaPlayer = new MediaPlayer(media);
-                            mediaPlayer.setAutoPlay(true);
-                            mediaPlayer.setOnEndOfMedia(() -> {
-                                log.info("播放结束");
-                            });
-                        });
-                    }
-                }
-
-                // 完成下载
-                outputStream.close();
-                inputStream.close();
-            } catch (Exception e) {
-                log.error("播放失败", e);
-            } finally {
-                if (stream != null) {
-                    try {
-                        stream.close();
-                    } catch (IOException e) {
-                        log.info("关闭流失败");
-                    }
-                }
-            }
-        });
-
+    private boolean isPlaying() {
+        return mediaPlayer != null && mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING;
     }
 
+    private void skip() {
+        MainController mainController = Bootstrap.getMainController();
+        Song nowPlaying = getNowPlaying();
+        if (this.mode != PlayMode.REPEAT) {
+            nowPlaying.setPlaying(false);
+            if (nowPlayingIndex < nowPlayingList.size() - 1) {
+                boolean isPlaying = isPlaying();
+                mainController.updatePlayPauseIcon(isPlaying);
+                this.nowPlayingIndex = nowPlayingIndex + 1;
+            } else {
+                mainController.updatePlayPauseIcon(false);
+                nowPlayingIndex = 0;
+            }
+        }
+        play();
+    }
 
+    private Song getNowPlaying() {
+        int index = this.mode == PlayMode.SHUFFLE ? this.shuffleSequence.get(nowPlayingIndex) : nowPlayingIndex;
+        return this.nowPlayingList.get(index);
+    }
+
+    /**
+     * play函数，只播放 nowPlayingIndex 对应的歌曲
+     */
+    public void play() {
+        if (this.nowPlayingList.isEmpty()) {
+            throw new RuntimeException("播放列表为空");
+        }
+        if (isPlaying()) {
+            mediaPlayer.stop();
+        }
+        if (this.downloadTask != null) {
+            this.downloadTask.stop();
+        }
+        Song song = getNowPlaying();
+        String uri = getOrCache(song);
+        Media media = new Media(uri);
+        mediaPlayer = new MediaPlayer(media);
+        mediaPlayer.setAutoPlay(true);
+        song.setPlaying(true);
+        mediaPlayer.setOnEndOfMedia(this::skip);
+        mediaPlayer.setMute(this.mute);
+        timer.scheduleAtFixedRate(new TimeUpdater(), 0, 250);
+        Bootstrap.getMainController().updatePlayPauseIcon(true);
+    }
+
+    private String getOrCache(Song song) {
+        Path path = Paths.get(FileUtil.getTmpDirPath(), "fx_ player", "cache_music", song.getId() + ".mp3");
+        File tempMusic = path.toFile();
+        if (tempMusic.exists()) {
+            log.info("使用缓存的音乐文件播放");
+            return tempMusic.toURI().toString();
+        }
+        File tempFile = FileUtil.createTempFile();
+        this.downloadTask = new DownloadTask(song, appConfig.getMusicSource(), tempFile);
+        CompletableFuture.runAsync(downloadTask).thenRun(() -> {
+            if (this.downloadTask.isFinish()) {
+                log.info("缓存完成，文件移动到:{}", tempMusic.getAbsolutePath());
+                FileUtil.move(tempFile, tempMusic, true);
+            } else {
+                FileUtil.del(tempFile);
+            }
+            this.downloadTask = null;
+        });
+        while (this.downloadTask.getDownloaded() < 50_000) {
+            ThreadUtil.sleep(100);
+        }
+        return tempFile.toURI().toString();
+    }
+
+    public void seek(int seconds) {
+        if (mediaPlayer != null) {
+            mediaPlayer.seek(new Duration(seconds * 1000));
+            timerCounter = seconds * 4;
+            Bootstrap.getMainController().updateTimeLabels();
+        }
+    }
+
+    public void setNowPlayingList(List<Song> songs) {
+        this.nowPlayingList.clear();
+        this.nowPlayingIndex = 0;
+        this.nowPlayingList = new ArrayList<>(songs);
+    }
+
+    /**
+     * 随机
+     */
+    public void toggleShuffle() {
+        this.mode = PlayMode.SHUFFLE;
+        this.shuffleSequence = new ArrayList<>();
+        for (int i = 0; i < getNowPlayingList().size(); i++) {
+            shuffleSequence.add(i);
+        }
+        Collections.shuffle(shuffleSequence); // 随机打乱下标列表
+        nowPlayingIndex = 0;
+    }
+
+    public boolean isShuffleActive() {
+        return this.mode == PlayMode.SHUFFLE;
+    }
+
+    private static class TimeUpdater extends TimerTask {
+
+
+        private final int length = (int) NewPlayer.getInstance().nowPlaying().getLengthInSeconds() * 4;
+
+        @Override
+        public void run() {
+            Platform.runLater(() -> {
+                if (NewPlayer.getInstance().timerCounter < length) {
+                    if (++NewPlayer.getInstance().timerCounter % 4 == 0) {
+                        Bootstrap.getMainController().updateTimeLabels();
+                        NewPlayer.getInstance().secondsPlayed++;
+                    }
+                    if (!Bootstrap.getMainController().isTimeSliderPressed()) {
+                        Bootstrap.getMainController().updateTimeSlider();
+                    }
+                }
+            });
+        }
+    }
 }

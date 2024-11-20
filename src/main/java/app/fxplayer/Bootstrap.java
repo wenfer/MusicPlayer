@@ -4,6 +4,7 @@ import app.fxplayer.source.MusicSource;
 import app.fxplayer.util.Resources;
 import app.fxplayer.views.ImportMusicDialogController;
 import app.fxplayer.views.MainController;
+import cn.hutool.core.io.FileUtil;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -16,6 +17,7 @@ import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Timer;
 
@@ -96,7 +98,7 @@ public class Bootstrap extends Application {
         timer = new Timer();
         timerCounter = 0;
         secondsPlayed = 0;
-        this.stage = stage;
+        Bootstrap.stage = stage;
         stage.setTitle("Music Player");
         stage.getIcons().add(new Image(this.getClass().getResource(Resources.IMG + "Icon.png").toString()));
         stage.setOnCloseRequest(event -> {

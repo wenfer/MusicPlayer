@@ -3,6 +3,7 @@ package app.fxplayer.views;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import app.fxplayer.Bootstrap;
 import app.fxplayer.MusicPlayer;
 import app.fxplayer.util.CustomSliderSkin;
 import javafx.css.PseudoClass;
@@ -54,7 +55,7 @@ public class VolumePopupController implements Initializable {
 
     @FXML
     private void volumeClick() {
-        //MusicPlayer.getMainController().volumeClick();
+        Bootstrap.getMainController().volumeClick();
     }
 
     @FXML

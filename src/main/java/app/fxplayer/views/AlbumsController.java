@@ -3,6 +3,7 @@ package app.fxplayer.views;
 import app.fxplayer.AppConfig;
 import app.fxplayer.Bootstrap;
 import app.fxplayer.MusicPlayer;
+import app.fxplayer.NewPlayer;
 import app.fxplayer.model.Album;
 import app.fxplayer.model.Song;
 import app.fxplayer.util.ClippedTableCell;
@@ -434,41 +435,17 @@ public class AlbumsController implements Initializable, SubView {
 
     @Override
     public void play() {
-
         Song song = selectedSong;
         ObservableList<Song> songList = songTable.getItems();
-        if (MusicPlayer.isShuffleActive()) {
-            Collections.shuffle(songList);
-            songList.remove(song);
-            songList.add(0, song);
-        }
-//        MusicPlayer.setNowPlayingList(songList);
-//        MusicPlayer.setNowPlaying(song);
-        // MusicPlayer.play();
+        NewPlayer player = NewPlayer.getInstance();
+        player.setNowPlayingList(songList);
+        player.play(song);
     }
 
     @Override
     public void scroll(char letter) {
 
-        int index = 0;
-        double cellHeight = 0;
-        ObservableList<Node> children = grid.getChildren();
-
-        for (Node child : children) {
-
-            VBox cell = (VBox) child;
-            cellHeight = cell.getHeight();
-            if (cell.getChildren().size() > 1) {
-                Label label = (Label) cell.getChildren().get(1);
-                char firstLetter = removeArticle(label.getText()).charAt(0);
-                if (firstLetter < letter) {
-                    index++;
-                }
-            }
-        }
-
-        double row = (index / 5) * cellHeight;
-        double finalVvalue = row / (grid.getHeight() - gridBox.getHeight());
+        double finalVvalue = getFinalVvalue(letter);
         double startVvalue = gridBox.getVvalue();
 
         Animation scrollAnimation = new Transition() {
@@ -483,6 +460,26 @@ public class AlbumsController implements Initializable, SubView {
         };
 
         scrollAnimation.play();
+    }
+
+    private double getFinalVvalue(char letter) {
+        int index = 0;
+        double cellHeight = 0;
+        ObservableList<Node> children = grid.getChildren();
+        for (Node child : children) {
+            VBox cell = (VBox) child;
+            cellHeight = cell.getHeight();
+            if (cell.getChildren().size() > 1) {
+                Label label = (Label) cell.getChildren().get(1);
+                char firstLetter = removeArticle(label.getText()).charAt(0);
+                if (firstLetter < letter) {
+                    index++;
+                }
+            }
+        }
+
+        double row = ((double) index / 5) * cellHeight;
+        return row / (grid.getHeight() - gridBox.getHeight());
     }
 
     private String removeArticle(String title) {

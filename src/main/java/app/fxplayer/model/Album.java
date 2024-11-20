@@ -1,17 +1,21 @@
 package app.fxplayer.model;
 
+import app.fxplayer.AppConfig;
+import app.fxplayer.util.Resources;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.image.Image;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONPropertyIgnore;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 
-@NoArgsConstructor
 @Data
+@Slf4j
 public final class Album implements Comparable<Album>, SourceData {
 
     /**
@@ -32,7 +36,9 @@ public final class Album implements Comparable<Album>, SourceData {
 
     private Image artwork;
 
-    private ArrayList<Song> songs;
+    private String coverArtId;
+
+    private List<Song> songs;
 
     private SimpleObjectProperty<Image> artworkProperty;
 
@@ -41,43 +47,39 @@ public final class Album implements Comparable<Album>, SourceData {
      * Constructor for the Album class.
      * Creates an album object and obtains the album artwork.
      */
-    public Album(String id, String title, String artist, String artistId, ArrayList<Song> songs) {
+    public Album(String id, String title, String source, String artist, String artistId, String coverArtId) {
         this.id = id;
         this.title = title;
         this.artistId = artistId;
+        this.source = source;
         this.artist = artist;
-        this.songs = songs;
-        this.artworkProperty = new SimpleObjectProperty<>(getArtwork());
+        this.coverArtId = coverArtId;
+        //this.artworkProperty = new SimpleObjectProperty<>(getArtwork());
     }
 
     @JSONPropertyIgnore
     public ArrayList<Song> getSongs() {
+        if(this.songs==null || this.songs.isEmpty()){
+            this.songs = AppConfig.getInstance().getMusicSource().listByAlbum(this);
+        }
         return new ArrayList<>(this.songs);
     }
 
     @JSONPropertyIgnore
     public ObjectProperty<Image> artworkProperty() {
+        if (this.artworkProperty == null) {
+            this.artworkProperty = new SimpleObjectProperty<>(getArtwork());
+        }
         return this.artworkProperty;
     }
 
     public Image getArtwork() {
-/*        if (this.artwork == null) {
-            try {
-                String location = this.songs.get(0).getLocation();
-                AudioFile audioFile = AudioFileIO.read(new File(location));
-                Tag tag = audioFile.getTag();
-                byte[] bytes = tag.getFirstArtwork().getBinaryData();
-                ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-                this.artwork = new Image(in, 300, 300, true, true);
-
-                if (this.artwork.isError()) {
-                    this.artwork = new Image(Resources.IMG + "albumsIcon.png");
-                }
-
-            } catch (Exception ex) {
-                this.artwork = new Image(Resources.IMG + "albumsIcon.png");
-            }
-        }*/
+        File coverArt = AppConfig.getInstance().getMusicSource().getCoverArt(this.getCoverArtId());
+        if (coverArt != null && coverArt.exists()) {
+            this.artwork = new Image(coverArt.toURI().toString());
+        } else {
+            this.artwork = new Image(Resources.IMG + "albumsIcon.png");
+        }
         return this.artwork;
     }
 
@@ -85,23 +87,16 @@ public final class Album implements Comparable<Album>, SourceData {
     public int compareTo(Album other) {
         String first = removeArticle(this.title);
         String second = removeArticle(other.title);
-
         return first.compareTo(second);
     }
 
     private String removeArticle(String title) {
-
         String[] arr = title.split(" ", 2);
-
         if (arr.length < 2) {
-
             return title;
-
         } else {
-
             String firstWord = arr[0];
             String theRest = arr[1];
-
             return switch (firstWord) {
                 case "A", "An", "The" -> theRest;
                 default -> title;

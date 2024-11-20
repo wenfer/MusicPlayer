@@ -1,7 +1,7 @@
 package app.fxplayer.model;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -53,11 +53,17 @@ public class Playlist {
     	}
     }
     
-//    public void removeSong(int songId) {
-//      // Loops through the songs in the play list.
-//      // When the song with an ID matching the selectedSongId is found, it is deleted.
-//        songs.removeIf(song -> song.getId() == songId);
-//    }
+    public int removeSong(String songId) {
+      // Loops through the songs in the play list.
+      // When the song with an ID matching the selectedSongId is found, it is deleted.
+        for (int i = 0; i < songs.size(); i++) {
+            if(Objects.equals(songs.get(i).getId(), songId)){
+                songs.remove(i);
+                return i;
+            }
+        }
+        return -1;
+    }
 
     @Override
     public String toString() {
