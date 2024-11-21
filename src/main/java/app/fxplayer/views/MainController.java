@@ -2,11 +2,10 @@ package app.fxplayer.views;
 
 import app.fxplayer.AppConfig;
 import app.fxplayer.Bootstrap;
-import app.fxplayer.MusicPlayer;
+import app.fxplayer.Constants;
 import app.fxplayer.NewPlayer;
 import app.fxplayer.model.*;
 import app.fxplayer.util.CustomSliderSkin;
-import app.fxplayer.util.Resources;
 import app.fxplayer.util.Search;
 import app.fxplayer.util.SubView;
 import com.melloware.jintellitype.IntellitypeListener;
@@ -122,8 +121,8 @@ public class MainController implements Initializable, IntellitypeListener {
         PseudoClass active = PseudoClass.getPseudoClass("active");
         loopButton.setOnMouseClicked(x -> {
             sideBar.requestFocus();
-            MusicPlayer.toggleLoop();
-            loopButton.pseudoClassStateChanged(active, MusicPlayer.isLoopActive());
+            NewPlayer.getInstance().toggleLoop();
+            loopButton.pseudoClassStateChanged(active, NewPlayer.getInstance().isLoopActive());
         });
         shuffleButton.setOnMouseClicked(x -> {
             sideBar.requestFocus();
@@ -250,14 +249,14 @@ public class MainController implements Initializable, IntellitypeListener {
 
     private void createVolumePopup() {
         try {
-            FXMLLoader loader = new FXMLLoader(this.getClass().getResource(Resources.FXML + "VolumePopup.fxml"));
+            FXMLLoader loader = new FXMLLoader(this.getClass().getResource(Constants.FXML + "VolumePopup.fxml"));
             HBox view = loader.load();
             volumePopupController = loader.getController();
             Stage stage = Bootstrap.getStage();
             Stage popup = new Stage();
             popup.setScene(new Scene(view));
             popup.initStyle(StageStyle.UNDECORATED);
-            //popup.initOwner(stage);
+            popup.initOwner(stage);
             popup.setX(stage.getWidth() - 270);
             popup.setY(stage.getHeight() - 120);
             popup.focusedProperty().addListener((x, wasFocused, isFocused) -> {
@@ -279,7 +278,7 @@ public class MainController implements Initializable, IntellitypeListener {
     private void createSearchPopup() {
         try {
             VBox view = new VBox();
-            view.getStylesheets().add(Resources.CSS + "MainStyle.css");
+            view.getStylesheets().add(Constants.CSS + "MainStyle.css");
             view.getStyleClass().add("searchPopup");
             Stage stage = Bootstrap.getStage();
             Stage popup = new Stage();
@@ -298,7 +297,7 @@ public class MainController implements Initializable, IntellitypeListener {
     }
 
     public void updateNowPlayingButton() {
-        Song song = MusicPlayer.getNowPlaying();
+        Song song = NewPlayer.getInstance().getNowPlaying();
         if (song != null) {
             nowPlayingTitle.setText(song.getTitle());
             nowPlayingArtist.setText(song.getArtist());
@@ -312,10 +311,10 @@ public class MainController implements Initializable, IntellitypeListener {
 
     public void initializeTimeSlider() {
 
-        Song song = MusicPlayer.getNowPlaying();
+        Song song = NewPlayer.getInstance().getNowPlaying();
         timeSlider.setMin(0);
         if (song != null) {
-            timeSlider.setMax(Integer.parseInt(song.getLength()) * 4);
+            timeSlider.setMax(song.getLengthInSeconds() * 4);
         } else {
             timeSlider.setMax(1);
         }
@@ -328,8 +327,7 @@ public class MainController implements Initializable, IntellitypeListener {
     }
 
     public void initializeTimeLabels() {
-
-        Song song = MusicPlayer.getNowPlaying();
+        Song song = NewPlayer.getInstance().getNowPlaying();
         if (song != null) {
             timePassed.setText("0:00");
             timeRemaining.setText(song.getLength());
@@ -340,9 +338,8 @@ public class MainController implements Initializable, IntellitypeListener {
     }
 
     public void updateTimeLabels() {
-
-        timePassed.setText(MusicPlayer.getTimePassed());
-        timeRemaining.setText(MusicPlayer.getTimeRemaining());
+        timePassed.setText(NewPlayer.getInstance().getTimePassed());
+        timeRemaining.setText(NewPlayer.getInstance().getTimeRemaining());
     }
 
     @SuppressWarnings("unchecked")
@@ -350,7 +347,7 @@ public class MainController implements Initializable, IntellitypeListener {
 
         for (Playlist playlist : NewPlayer.getInstance().getPlaylists()) {
             try {
-                FXMLLoader loader = new FXMLLoader(this.getClass().getResource(Resources.FXML + "PlaylistCell.fxml"));
+                FXMLLoader loader = new FXMLLoader(this.getClass().getResource(Constants.FXML + "PlaylistCell.fxml"));
                 HBox cell = loader.load();
                 Label label = (Label) cell.getChildren().get(1);
                 label.setText(playlist.getTitle());
@@ -367,7 +364,7 @@ public class MainController implements Initializable, IntellitypeListener {
                     ClipboardContent content = new ClipboardContent();
                     content.putString("Playlist");
                     db.setContent(content);
-                    MusicPlayer.setDraggedItem(playlist);
+                    Bootstrap.setDraggedItem(playlist);
                     db.setDragView(cell.snapshot(null, null), 125, 25);
                     event.consume();
                 });
@@ -412,7 +409,7 @@ public class MainController implements Initializable, IntellitypeListener {
                     new Thread(() -> {
                         switch (dragString) {
                             case "Artist":
-                                Artist artist = (Artist) MusicPlayer.getDraggedItem();
+                                Artist artist = (Artist) Bootstrap.getDraggedItem();
                                 for (Album album : artist.getAlbums()) {
                                     for (Song song : album.getSongs()) {
                                         if (!playlist.getSongs().contains(song)) {
@@ -422,7 +419,7 @@ public class MainController implements Initializable, IntellitypeListener {
                                 }
                                 break;
                             case "Album":
-                                Album album = (Album) MusicPlayer.getDraggedItem();
+                                Album album = (Album) Bootstrap.getDraggedItem();
                                 for (Song song : album.getSongs()) {
                                     if (!playlist.getSongs().contains(song)) {
                                         playlist.addSong(song);
@@ -430,7 +427,7 @@ public class MainController implements Initializable, IntellitypeListener {
                                 }
                                 break;
                             case "Playlist":
-                                Playlist list = (Playlist) MusicPlayer.getDraggedItem();
+                                Playlist list = (Playlist) Bootstrap.getDraggedItem();
                                 for (Song song : list.getSongs()) {
                                     if (!playlist.getSongs().contains(song)) {
                                         playlist.addSong(song);
@@ -438,13 +435,13 @@ public class MainController implements Initializable, IntellitypeListener {
                                 }
                                 break;
                             case "Song":
-                                Song song = (Song) MusicPlayer.getDraggedItem();
+                                Song song = (Song) Bootstrap.getDraggedItem();
                                 if (!playlist.getSongs().contains(song)) {
                                     playlist.addSong(song);
                                 }
                                 break;
                             case "List":
-                                ObservableList<Song> songs = (ObservableList<Song>) MusicPlayer.getDraggedItem();
+                                ObservableList<Song> songs = (ObservableList<Song>) Bootstrap.getDraggedItem();
                                 for (Song s : songs) {
                                     if (!playlist.getSongs().contains(s)) {
                                         playlist.addSong(s);
@@ -497,7 +494,7 @@ public class MainController implements Initializable, IntellitypeListener {
     private void newPlaylist() {
         if (!newPlaylistAnimation.getStatus().equals(Status.RUNNING)) {
             try {
-                FXMLLoader loader = new FXMLLoader(this.getClass().getResource(Resources.FXML + "PlaylistCell.fxml"));
+                FXMLLoader loader = new FXMLLoader(this.getClass().getResource(Constants.FXML + "PlaylistCell.fxml"));
                 HBox cell = loader.load();
 
                 Label label = (Label) cell.getChildren().get(1);
@@ -541,7 +538,7 @@ public class MainController implements Initializable, IntellitypeListener {
                     ClipboardContent content = new ClipboardContent();
                     content.putString("Playlist");
                     db.setContent(content);
-                    MusicPlayer.setDraggedItem(playlist);
+                    Bootstrap.setDraggedItem(playlist);
                     SnapshotParameters sp = new SnapshotParameters();
                     sp.setTransform(Transform.scale(1.5, 1.5));
                     db.setDragView(cell.snapshot(sp, null));
@@ -590,7 +587,7 @@ public class MainController implements Initializable, IntellitypeListener {
                     new Thread(() -> {
                         switch (dragString) {
                             case "Artist":
-                                Artist artist = (Artist) MusicPlayer.getDraggedItem();
+                                Artist artist = (Artist) Bootstrap.getDraggedItem();
                                 for (Album album : artist.getAlbums()) {
                                     for (Song song : album.getSongs()) {
                                         if (!playlist.getSongs().contains(song)) {
@@ -600,7 +597,7 @@ public class MainController implements Initializable, IntellitypeListener {
                                 }
                                 break;
                             case "Album":
-                                Album album = (Album) MusicPlayer.getDraggedItem();
+                                Album album = (Album) Bootstrap.getDraggedItem();
                                 for (Song song : album.getSongs()) {
                                     if (!playlist.getSongs().contains(song)) {
                                         playlist.addSong(song);
@@ -608,7 +605,7 @@ public class MainController implements Initializable, IntellitypeListener {
                                 }
                                 break;
                             case "Playlist":
-                                Playlist list = (Playlist) MusicPlayer.getDraggedItem();
+                                Playlist list = (Playlist) Bootstrap.getDraggedItem();
                                 for (Song song : list.getSongs()) {
                                     if (!playlist.getSongs().contains(song)) {
                                         playlist.addSong(song);
@@ -616,13 +613,13 @@ public class MainController implements Initializable, IntellitypeListener {
                                 }
                                 break;
                             case "Song":
-                                Song song = (Song) MusicPlayer.getDraggedItem();
+                                Song song = (Song) Bootstrap.getDraggedItem();
                                 if (!playlist.getSongs().contains(song)) {
                                     playlist.addSong(song);
                                 }
                                 break;
                             case "List":
-                                ObservableList<Song> songs = (ObservableList<Song>) MusicPlayer.getDraggedItem();
+                                ObservableList<Song> songs = (ObservableList<Song>) Bootstrap.getDraggedItem();
                                 for (Song s : songs) {
                                     if (!playlist.getSongs().contains(s)) {
                                         playlist.addSong(s);
@@ -833,35 +830,28 @@ public class MainController implements Initializable, IntellitypeListener {
 
     @FXML
     public void playPause() {
-
         sideBar.requestFocus();
-
-/*        if (MusicPlayer.isPlaying()) {
-            MusicPlayer.pause();
+        if (NewPlayer.getInstance().isPlaying()) {
+            NewPlayer.getInstance().play();
         } else {
-            MusicPlayer.play();
-        }*/
+            NewPlayer.getInstance().pause();
+        }
     }
 
     @FXML
     private void back() {
-
         sideBar.requestFocus();
-        //MusicPlayer.back();
-        log.info("not set");
+        NewPlayer.getInstance().back();
     }
 
     @FXML
     private void skip() {
-
         sideBar.requestFocus();
-        //MusicPlayer.skip();
-        log.info("not set skip");
+        NewPlayer.getInstance().skip();
     }
 
     @FXML
     private void letterClicked(Event e) {
-
         sideBar.requestFocus();
         Label eventSource = ((Label) e.getSource());
         char letter = eventSource.getText().charAt(0);
@@ -894,7 +884,7 @@ public class MainController implements Initializable, IntellitypeListener {
                 ImageView image = new ImageView();
                 image.setFitHeight(40);
                 image.setFitWidth(40);
-                image.setImage(artist.getArtistImage());
+                image.setImage(artist.artistImageProperty().getValue());
                 Label label = new Label(artist.getTitle());
                 label.setTextOverrun(OverrunStyle.CLIP);
                 label.getStyleClass().setAll("searchLabel");
@@ -916,7 +906,7 @@ public class MainController implements Initializable, IntellitypeListener {
             list.add(separator);
             VBox.setMargin(separator, new Insets(10, 10, 0, 10));
         }
-        if (result.getAlbumResults().size() > 0) {
+        if (!result.getAlbumResults().isEmpty()) {
             Label header = new Label("Albums");
             list.add(header);
             VBox.setMargin(header, new Insets(10, 10, 10, 10));

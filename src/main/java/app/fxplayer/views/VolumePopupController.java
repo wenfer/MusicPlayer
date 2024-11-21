@@ -4,7 +4,8 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 import app.fxplayer.Bootstrap;
-import app.fxplayer.MusicPlayer;
+
+import app.fxplayer.NewPlayer;
 import app.fxplayer.util.CustomSliderSkin;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
@@ -68,6 +69,6 @@ public class VolumePopupController implements Initializable {
         volumeSlider.pseudoClassStateChanged(muted, !isMuted);
         frontVolumeTrack.pseudoClassStateChanged(muted, !isMuted);
         volumeLabel.pseudoClassStateChanged(muted, !isMuted);
-        MusicPlayer.mute(isMuted);
+        NewPlayer.getInstance().mute(isMuted);
     }
 }

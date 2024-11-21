@@ -2,7 +2,7 @@ package app.fxplayer.views;
 
 import app.fxplayer.AppConfig;
 import app.fxplayer.Bootstrap;
-import app.fxplayer.MusicPlayer;
+import app.fxplayer.Constants;
 import app.fxplayer.NewPlayer;
 import app.fxplayer.model.MostPlayedPlaylist;
 import app.fxplayer.model.Playlist;
@@ -185,11 +185,11 @@ public class PlaylistsController implements Initializable, SubView {
                 if (tableView.getSelectionModel().getSelectedIndices().size() > 1) {
                     content.putString("List");
                     db.setContent(content);
-                    MusicPlayer.setDraggedItem(tableView.getSelectionModel().getSelectedItems());
+                    Bootstrap.setDraggedItem(tableView.getSelectionModel().getSelectedItems());
                 } else {
                     content.putString("Song");
                     db.setContent(content);
-                    MusicPlayer.setDraggedItem(row.getItem());
+                    Bootstrap.setDraggedItem(row.getItem());
                 }
                 ImageView image = new ImageView(row.snapshot(null, null));
                 Rectangle2D rectangle = new Rectangle2D(0, 0, 250, 50);
@@ -261,7 +261,7 @@ public class PlaylistsController implements Initializable, SubView {
         ImageView image = new ImageView();
         image.setFitHeight(150);
         image.setFitWidth(150);
-        image.setImage(new Image(Resources.IMG + "playlistsIcon.png"));
+        image.setImage(new Image(Constants.IMG + "playlistsIcon.png"));
 
         VBox placeholder = new VBox();
         placeholder.setAlignment(Pos.CENTER);

@@ -8,14 +8,19 @@ import cn.hutool.core.io.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.beardbot.subsonic.client.Subsonic;
 import net.beardbot.subsonic.client.SubsonicPreferences;
+import net.beardbot.subsonic.client.api.lists.AlbumListParams;
 import net.beardbot.subsonic.client.api.playlist.UpdatePlaylistParams;
 import net.beardbot.subsonic.client.base.SubsonicIncompatibilityException;
 import org.json.JSONObject;
-import org.subsonic.restapi.*;
+import org.subsonic.restapi.AlbumWithSongsID3;
+import org.subsonic.restapi.Child;
+import org.subsonic.restapi.IndexID3;
+import org.subsonic.restapi.PlaylistWithSongs;
 
 import java.io.File;
 import java.io.InputStream;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -27,7 +32,7 @@ public class SonicClientSource implements MusicSource {
 
     private final String name;
 
-    private Map<String, Album> albumListCache = null;
+    private final Map<String, Album> albumListCache = new HashMap<>();
 
     private Map<String, Artist> artistCache = null;
 
@@ -54,17 +59,29 @@ public class SonicClientSource implements MusicSource {
         }
     }
 
+
     private Map<String, Album> getAlbumMap() {
-        if (this.albumListCache == null || this.albumListCache.isEmpty()) {
-            AlbumList albumList = subsonic.lists().getAlbumList();
-            log.info("get album result {}", JSONObject.valueToString(albumList.getAlbums()));
-            this.albumListCache = albumList.getAlbums().stream()
-                    .map(child -> {
+        if (this.albumListCache.isEmpty()) {
+            CompletableFuture.runAsync(() -> {
+                int page = 0;
+                int size = 50;
+                boolean hasNext = true;
+                while (hasNext) {
+                    AlbumListParams albumListParams = AlbumListParams.create();
+                    albumListParams.size(size);
+                    albumListParams.offset(page * size);
+                    List<Child> albumList = subsonic.lists().getAlbumList(albumListParams).getAlbums();
+                    if (albumList.size() != size) {
+                        hasNext = false;
+                    }
+                    albumList.forEach(child -> {
                         downloadCoverArtExecutor.submit(() -> this.downloadCoverArt(child.getCoverArtId()));
-                        return new Album(child.getId(), child.getTitle(), this.name, child.getArtist(),
-                                child.getArtistId(), child.getCoverArtId());
-                    })
-                    .collect(Collectors.toMap(Album::getId, album -> album));
+                        this.albumListCache.put(child.getId(), new Album(child.getId(), child.getTitle(), this.name, child.getArtist(),
+                                child.getArtistId(), child.getCoverArtId()));
+                    });
+                    page++;
+                }
+            });
         }
         return this.albumListCache;
     }
@@ -76,19 +93,6 @@ public class SonicClientSource implements MusicSource {
         }
     }
 
-
-/*    @Override
-    public List<Song> list() {
-        List<MusicFolder> musicFolders = subsonic.browsing().getMusicFolders();
-        log.info("获取到音乐目录共{}个",musicFolders.size());
-        for (MusicFolder musicFolder : musicFolders) {
-            log.info("开始获取目录{}下的音乐",musicFolder.getName());
-            Directory directory = subsonic.browsing().getMusicDirectory(String.valueOf(musicFolder.getId()));
-            directory.getchildren()
-
-        }
-        return List.of();
-    }*/
 
     private Song childToSong(Child child, Album album) {
         return new Song(child.getId(),

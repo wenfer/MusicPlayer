@@ -1,7 +1,8 @@
 package app.fxplayer.util;
 
 import app.fxplayer.Bootstrap;
-import app.fxplayer.MusicPlayer;
+
+import app.fxplayer.Constants;
 import app.fxplayer.model.Song;
 import app.fxplayer.views.PlaylistsController;
 import javafx.beans.value.ChangeListener;
@@ -37,9 +38,9 @@ public class ControlPanelTableCell<S, T> extends TableCell<S, T> {
 			String fileName;
 			// Selects the correct control panel based on whether the user is in a play list or not.
 			if (Bootstrap.getMainController().getSubViewController() instanceof PlaylistsController) {
-				fileName = Resources.FXML + "ControlPanelPlaylists.fxml";
+				fileName = Constants.FXML + "ControlPanelPlaylists.fxml";
 			} else {
-				fileName = Resources.FXML + "ControlPanel.fxml";
+				fileName = Constants.FXML + "ControlPanel.fxml";
 			}
 			try {
 				Label text = new Label(item.toString());

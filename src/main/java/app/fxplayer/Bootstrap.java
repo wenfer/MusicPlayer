@@ -1,10 +1,8 @@
 package app.fxplayer;
 
 import app.fxplayer.source.MusicSource;
-import app.fxplayer.util.Resources;
 import app.fxplayer.views.ImportMusicDialogController;
 import app.fxplayer.views.MainController;
-import cn.hutool.core.io.FileUtil;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -15,31 +13,36 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.Timer;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Slf4j
 public class Bootstrap extends Application {
 
-    private Timer timer;
-
-    private int timerCounter;
-
-    private int secondsPlayed;
 
     @Getter
     private static MainController mainController;
+
+
+    @Setter
+    @Getter
+    private static Object draggedItem;
+
     /**
      * main window
      */
     @Getter
     private static Stage stage;
 
-    private NewPlayer newPlayer;
-
+    @Getter
+    private static ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     public static void main(String[] args) {
         log.error("开始启动");
@@ -59,7 +62,7 @@ public class Bootstrap extends Application {
 
     private void createSource() {
         try {
-            FXMLLoader loader = new FXMLLoader(MusicPlayer.class.getResource(Resources.FXML + "ImportMusicDialog.fxml"));
+            FXMLLoader loader = new FXMLLoader(Bootstrap.class.getResource(Constants.FXML + "ImportMusicDialog.fxml"));
             BorderPane importView = loader.load();
             // Create the dialog Stage.
             Stage dialogStage = new Stage();
@@ -95,12 +98,12 @@ public class Bootstrap extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        timer = new Timer();
-        timerCounter = 0;
-        secondsPlayed = 0;
+//        timer = new Timer();
+//        timerCounter = 0;
+//        secondsPlayed = 0;
         Bootstrap.stage = stage;
         stage.setTitle("Music Player");
-        stage.getIcons().add(new Image(this.getClass().getResource(Resources.IMG + "Icon.png").toString()));
+        stage.getIcons().add(new Image(Objects.requireNonNull(this.getClass().getResource(Constants.IMG + "Icon.png")).toString()));
         stage.setOnCloseRequest(event -> {
             Platform.exit();
             System.exit(0);
@@ -108,7 +111,7 @@ public class Bootstrap extends Application {
 
         try {
             // Load main layout from fxml file.
-            FXMLLoader loader = new FXMLLoader(this.getClass().getResource(Resources.FXML + "SplashScreen.fxml"));
+            FXMLLoader loader = new FXMLLoader(this.getClass().getResource(Constants.FXML + "SplashScreen.fxml"));
             VBox view = loader.load();
 
             // Shows the scene containing the layout.
@@ -126,16 +129,15 @@ public class Bootstrap extends Application {
             log.error("启动失败", ex);
             System.exit(0);
         }
-        this.newPlayer = NewPlayer.getInstance();
 
 
         Thread thread = new Thread(() -> {
             NewPlayer newPlayer = NewPlayer.getInstance();
             newPlayer.initializeList();
             //nowPlaying.setPlaying(true);
-            timer = new Timer();
-            timerCounter = 0;
-            secondsPlayed = 0;
+//            timer = new Timer();
+//            timerCounter = 0;
+//            secondsPlayed = 0;
             //newPlayer.play();
 /*            File imgFolder = new File(Resources.JAR + "/img");
             if (!imgFolder.exists()) {
@@ -173,7 +175,7 @@ public class Bootstrap extends Application {
     private void initMain() {
         try {
             // Load main layout from fxml file.
-            FXMLLoader loader = new FXMLLoader(this.getClass().getResource(Resources.FXML + "Main.fxml"));
+            FXMLLoader loader = new FXMLLoader(this.getClass().getResource(Constants.FXML + "Main.fxml"));
             BorderPane view = loader.load();
             mainController = loader.getController();
 

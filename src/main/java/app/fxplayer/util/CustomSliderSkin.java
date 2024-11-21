@@ -24,7 +24,7 @@ public class CustomSliderSkin extends SkinBase<Slider> {
     private static final Logger log = LoggerFactory.getLogger(CustomSliderSkin.class);
     // Track if slider is vertical/horizontal and cause re layout.
     private NumberAxis tickLine = null;
-    private double trackToTickGap = 2;
+    private final double trackToTickGap = 2;
 
     private boolean showTickMarks;
     private double thumbWidth;
@@ -47,31 +47,55 @@ public class CustomSliderSkin extends SkinBase<Slider> {
         initialize();
         slider.requestLayout();
         registerChangeListener(slider.minProperty(), (event) -> {
-            log.info("listener     min property");
+            if (showTickMarks && tickLine != null) {
+                tickLine.setLowerBound(slider.getMin());
+            }
+            getSkinnable().requestLayout();
         });
         registerChangeListener(slider.maxProperty(), (event) -> {
-            log.info("listener     max property");
+            if (showTickMarks && tickLine != null) {
+                tickLine.setUpperBound(slider.getMax());
+            }
+            getSkinnable().requestLayout();
         });
         registerChangeListener(slider.valueProperty(), (event) -> {
-            log.info("listener     value property {}", event.getValue());
+            positionThumb(trackClicked);
         });
         registerChangeListener(slider.orientationProperty(), (event) -> {
-            log.info("listener     orientation property");
+            if (showTickMarks && tickLine != null) {
+                tickLine.setSide(slider.getOrientation() == Orientation.VERTICAL ? Side.RIGHT : (slider.getOrientation() == null) ? Side.RIGHT : Side.BOTTOM);
+            }
+            getSkinnable().requestLayout();
         });
         registerChangeListener(slider.showTickMarksProperty(), (event) -> {
-            log.info("listener     showTickMarks property");
+            setShowTickMarks(slider.isShowTickMarks(), slider.isShowTickLabels());
+
         });
         registerChangeListener(slider.showTickLabelsProperty(), (event) -> {
-            log.info("listener     showTickLabels property");
+            setShowTickMarks(slider.isShowTickMarks(), slider.isShowTickLabels());
+
         });
         registerChangeListener(slider.majorTickUnitProperty(), (event) -> {
-            log.info("listener     majorTickUnit property");
+            if (tickLine != null) {
+                tickLine.setTickUnit(slider.getMajorTickUnit());
+                getSkinnable().requestLayout();
+            }
         });
         registerChangeListener(slider.minorTickCountProperty(), (event) -> {
-            log.info("listener     minorTickCount property");
+            if (tickLine != null) {
+                tickLine.setMinorTickCount(Math.max(slider.getMinorTickCount(), 0) + 1);
+                getSkinnable().requestLayout();
+            }
         });
         registerChangeListener(slider.labelFormatterProperty(), (event) -> {
-            log.info("listener     labelFormatter property");
+            if (tickLine != null) {
+                if (slider.getLabelFormatter() == null) {
+                    tickLine.setTickLabelFormatter(null);
+                } else {
+                    tickLine.setTickLabelFormatter(stringConverterWrapper);
+                    tickLine.requestAxisLayout();
+                }
+            }
         });
     }
 
@@ -170,7 +194,7 @@ public class CustomSliderSkin extends SkinBase<Slider> {
     }
 
     private final StringConverter<Number> stringConverterWrapper = new StringConverter<Number>() {
-        Slider slider = getSkinnable();
+        final Slider slider = getSkinnable();
 
         @Override
         public String toString(Number object) {
@@ -413,7 +437,7 @@ public class CustomSliderSkin extends SkinBase<Slider> {
         }
     }
 
-    private Animation thumbPressAnimation = new Transition() {
+    private final Animation thumbPressAnimation = new Transition() {
         {
             setCycleDuration(Duration.millis(100));
         }
@@ -424,7 +448,7 @@ public class CustomSliderSkin extends SkinBase<Slider> {
         }
     };
 
-    private Animation thumbReleaseAnimation = new Transition() {
+    private final Animation thumbReleaseAnimation = new Transition() {
         {
             setCycleDuration(Duration.millis(100));
         }

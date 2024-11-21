@@ -2,7 +2,7 @@ package app.fxplayer.views;
 
 import app.fxplayer.AppConfig;
 import app.fxplayer.Bootstrap;
-import app.fxplayer.MusicPlayer;
+
 import app.fxplayer.NewPlayer;
 import app.fxplayer.model.Album;
 import app.fxplayer.model.Song;
@@ -205,11 +205,11 @@ public class AlbumsController implements Initializable, SubView {
                 if (songTable.getSelectionModel().getSelectedIndices().size() > 1) {
                     content.putString("List");
                     db.setContent(content);
-                    MusicPlayer.setDraggedItem(songTable.getSelectionModel().getSelectedItems());
+                    Bootstrap.setDraggedItem(songTable.getSelectionModel().getSelectedItems());
                 } else {
                     content.putString("Song");
                     db.setContent(content);
-                    MusicPlayer.setDraggedItem(row.getItem());
+                    Bootstrap.setDraggedItem(row.getItem());
                 }
                 ImageView image = new ImageView(row.snapshot(null, null));
                 Rectangle2D rectangle = new Rectangle2D(0, 0, 250, 50);
@@ -237,32 +237,27 @@ public class AlbumsController implements Initializable, SubView {
             }
         });
 
-        horizontalSeparator.setOnMouseDragged(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent e) {
+        horizontalSeparator.setOnMouseDragged(e -> {
 
-                expandedHeight = Bootstrap.getStage().getHeight() - e.getSceneY() - 75;
+            expandedHeight = Bootstrap.getStage().getHeight() - e.getSceneY() - 75;
 
-                if (expandedHeight > gridBox.getHeight() * 0.75) {
-                    expandedHeight = gridBox.getHeight() * 0.75;
-                } else if (expandedHeight < gridBox.getHeight() * 0.25) {
-                    expandedHeight = gridBox.getHeight() * 0.25;
-                }
-
-                songBox.setPrefHeight(expandedHeight);
-                e.consume();
+            if (expandedHeight > gridBox.getHeight() * 0.75) {
+                expandedHeight = gridBox.getHeight() * 0.75;
+            } else if (expandedHeight < gridBox.getHeight() * 0.25) {
+                expandedHeight = gridBox.getHeight() * 0.25;
             }
+
+            songBox.setPrefHeight(expandedHeight);
+            e.consume();
         });
     }
 
     private VBox createCell(Album album, int index) {
-
         VBox cell = new VBox();
         Label title = new Label(album.getTitle());
         ImageView image = new ImageView(album.getArtwork());
         image.imageProperty().bind(album.artworkProperty());
         VBox imageBox = new VBox();
-
         title.setTextOverrun(OverrunStyle.CLIP);
         title.setWrapText(true);
         title.setPadding(new Insets(10, 0, 10, 0));
@@ -285,9 +280,7 @@ public class AlbumsController implements Initializable, SubView {
         cell.getStyleClass().add("album-cell");
         cell.setAlignment(Pos.CENTER);
         cell.setOnMouseClicked(event -> {
-
             PseudoClass selected = PseudoClass.getPseudoClass("selected");
-
             // If the album detail is collapsed, expand it and populate song table.
             if (isAlbumDetailCollapsed) {
 
@@ -382,7 +375,7 @@ public class AlbumsController implements Initializable, SubView {
             ClipboardContent content = new ClipboardContent();
             content.putString("Album");
             db.setContent(content);
-            MusicPlayer.setDraggedItem(album);
+            Bootstrap.setDraggedItem(album);
             db.setDragView(cell.snapshot(null, null), cell.widthProperty().divide(2).get(), cell.heightProperty().divide(2).get());
             event.consume();
         });
@@ -436,9 +429,9 @@ public class AlbumsController implements Initializable, SubView {
     @Override
     public void play() {
         Song song = selectedSong;
-        ObservableList<Song> songList = songTable.getItems();
+        //ObservableList<Song> songList = songTable.getItems();
         NewPlayer player = NewPlayer.getInstance();
-        player.setNowPlayingList(songList);
+        //player.setNowPlayingList(songList);
         player.play(song);
     }
 

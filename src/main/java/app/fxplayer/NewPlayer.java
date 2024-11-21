@@ -51,8 +51,9 @@ public class NewPlayer {
 
     //private final ExecutorService playThread = Executors.newSingleThreadExecutor();
 
-    private boolean mute;
+    private boolean mute = false;
     private DownloadTask downloadTask;
+
     private int secondsPlayed;
 
 
@@ -124,11 +125,11 @@ public class NewPlayer {
 
     }
 
-    private boolean isPlaying() {
+    public boolean isPlaying() {
         return mediaPlayer != null && mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING;
     }
 
-    private void skip() {
+    public void skip() {
         MainController mainController = Bootstrap.getMainController();
         Song nowPlaying = getNowPlaying();
         if (this.mode != PlayMode.REPEAT) {
@@ -145,7 +146,10 @@ public class NewPlayer {
         play();
     }
 
-    private Song getNowPlaying() {
+    public Song getNowPlaying() {
+        if (this.nowPlayingList.isEmpty()) {
+            return null;
+        }
         int index = this.mode == PlayMode.SHUFFLE ? this.shuffleSequence.get(nowPlayingIndex) : nowPlayingIndex;
         return this.nowPlayingList.get(index);
     }
@@ -163,6 +167,7 @@ public class NewPlayer {
         if (this.downloadTask != null) {
             this.downloadTask.stop();
         }
+        MainController mainController = Bootstrap.getMainController();
         Song song = getNowPlaying();
         String uri = getOrCache(song);
         Media media = new Media(uri);
@@ -170,9 +175,11 @@ public class NewPlayer {
         mediaPlayer.setAutoPlay(true);
         song.setPlaying(true);
         mediaPlayer.setOnEndOfMedia(this::skip);
+        mediaPlayer.volumeProperty().bind(mainController.getVolumeSlider().valueProperty().divide(200));
         mediaPlayer.setMute(this.mute);
+        timer = new Timer();
         timer.scheduleAtFixedRate(new TimeUpdater(), 0, 250);
-        Bootstrap.getMainController().updatePlayPauseIcon(true);
+        mainController.updatePlayPauseIcon(true);
     }
 
     private String getOrCache(Song song) {
@@ -228,6 +235,38 @@ public class NewPlayer {
 
     public boolean isShuffleActive() {
         return this.mode == PlayMode.SHUFFLE;
+    }
+
+    public String getTimePassed() {
+        int secondsPassed = timerCounter / 4;
+        int minutes = secondsPassed / 60;
+        int seconds = secondsPassed % 60;
+        return minutes + ":" + (seconds < 10 ? "0" + seconds : Integer.toString(seconds));
+    }
+
+    public String getTimeRemaining() {
+        long secondsPassed = timerCounter / 4;
+        long totalSeconds = getNowPlaying().getLengthInSeconds();
+        long secondsRemaining = totalSeconds - secondsPassed;
+        long minutes = secondsRemaining / 60;
+        long seconds = secondsRemaining % 60;
+        return minutes + ":" + (seconds < 10 ? "0" + seconds : Long.toString(seconds));
+    }
+
+    public void toggleLoop() {
+        this.mode = PlayMode.LOOP;
+    }
+
+    public boolean isLoopActive() {
+        return this.mode == PlayMode.LOOP;
+    }
+
+    public void mute(boolean isMuted) {
+        this.mute = isMuted;
+    }
+
+    public void back() {
+
     }
 
     private static class TimeUpdater extends TimerTask {

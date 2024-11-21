@@ -2,7 +2,6 @@ package app.fxplayer.views;
 
 import app.fxplayer.AppConfig;
 import app.fxplayer.Bootstrap;
-import app.fxplayer.MusicPlayer;
 import app.fxplayer.model.Artist;
 import app.fxplayer.model.Song;
 import app.fxplayer.util.SubView;
@@ -70,7 +69,6 @@ public class ArtistsController implements Initializable, SubView {
     }
 
     private VBox createCell(Artist artist) {
-
         VBox cell = new VBox();
         Label title = new Label(artist.getTitle());
         ImageView image = new ImageView(artist.getArtistImage());
@@ -114,7 +112,7 @@ public class ArtistsController implements Initializable, SubView {
             ClipboardContent content = new ClipboardContent();
             content.putString("Artist");
             db.setContent(content);
-            MusicPlayer.setDraggedItem(artist);
+            Bootstrap.setDraggedItem(artist);
             db.setDragView(cell.snapshot(null, null), cell.widthProperty().divide(2).get(), cell.heightProperty().divide(2).get());
             event.consume();
         });
@@ -151,7 +149,6 @@ public class ArtistsController implements Initializable, SubView {
         double row = ((double) index / 5) * cellHeight;
         double finalVvalue = row / (grid.getHeight() - scrollpane.getHeight());
         double startVvalue = scrollpane.getVvalue();
-
         return new Transition() {
             {
                 setCycleDuration(Duration.millis(500));
@@ -165,16 +162,12 @@ public class ArtistsController implements Initializable, SubView {
     }
 
     private String removeArticle(String title) {
-
         String[] arr = title.split(" ", 2);
-
         if (arr.length < 2) {
             return title;
         } else {
-
             String firstWord = arr[0];
             String theRest = arr[1];
-
             return switch (firstWord) {
                 case "A", "An", "The" -> theRest;
                 default -> title;

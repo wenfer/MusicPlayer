@@ -1,7 +1,8 @@
 package app.fxplayer.views;
 
 import app.fxplayer.AppConfig;
-import app.fxplayer.MusicPlayer;
+
+import app.fxplayer.Bootstrap;
 import app.fxplayer.NewPlayer;
 import app.fxplayer.model.Song;
 import app.fxplayer.util.ClippedTableCell;
@@ -172,11 +173,11 @@ public class SongsController implements Initializable, SubView {
                 if (tableView.getSelectionModel().getSelectedIndices().size() > 1) {
                     content.putString("List");
                     db.setContent(content);
-                    MusicPlayer.setDraggedItem(tableView.getSelectionModel().getSelectedItems());
+                    Bootstrap.setDraggedItem(tableView.getSelectionModel().getSelectedItems());
                 } else {
                     content.putString("Song");
                     db.setContent(content);
-                    MusicPlayer.setDraggedItem(row.getItem());
+                    Bootstrap.setDraggedItem(row.getItem());
                 }
                 ImageView image = new ImageView(row.snapshot(null, null));
                 Rectangle2D rectangle = new Rectangle2D(0, 0, 250, 50);

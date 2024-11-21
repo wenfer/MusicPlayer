@@ -4,6 +4,7 @@ import app.fxplayer.model.Album;
 import app.fxplayer.model.Artist;
 import app.fxplayer.model.Playlist;
 import app.fxplayer.model.Song;
+import javafx.concurrent.Task;
 
 import java.io.File;
 import java.io.InputStream;

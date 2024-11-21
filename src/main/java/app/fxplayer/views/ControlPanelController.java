@@ -4,7 +4,7 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 import app.fxplayer.Bootstrap;
-import app.fxplayer.MusicPlayer;
+
 import app.fxplayer.NewPlayer;
 import app.fxplayer.model.Playlist;
 import app.fxplayer.model.Song;

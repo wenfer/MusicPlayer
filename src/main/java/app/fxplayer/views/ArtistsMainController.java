@@ -2,7 +2,6 @@ package app.fxplayer.views;
 
 import app.fxplayer.AppConfig;
 import app.fxplayer.Bootstrap;
-import app.fxplayer.MusicPlayer;
 import app.fxplayer.NewPlayer;
 import app.fxplayer.model.Album;
 import app.fxplayer.model.Artist;
@@ -35,6 +34,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -44,6 +45,8 @@ import java.util.ResourceBundle;
 import java.util.concurrent.CountDownLatch;
 
 public class ArtistsMainController implements Initializable, SubView {
+
+    private static final Logger log = LoggerFactory.getLogger(ArtistsMainController.class);
 
     private class ArtistCell extends ListCell<Artist> {
 
@@ -72,7 +75,7 @@ public class ArtistsMainController implements Initializable, SubView {
                 ClipboardContent content = new ClipboardContent();
                 content.putString("Artist");
                 db.setContent(content);
-                MusicPlayer.setDraggedItem(artist);
+                Bootstrap.setDraggedItem(artist);
                 db.setDragView(this.snapshot(null, null), 125, 25);
                 event.consume();
             });
@@ -112,7 +115,7 @@ public class ArtistsMainController implements Initializable, SubView {
             albumArtwork.setPreserveRatio(true);
             albumArtwork.setSmooth(true);
             albumArtwork.setCache(true);
-
+            //albumArtwork.setImage(album.getArtwork());
             this.setOnMouseClicked(event -> albumList.getSelectionModel().select(album));
 
             this.setOnDragDetected(event -> {
@@ -120,7 +123,7 @@ public class ArtistsMainController implements Initializable, SubView {
                 ClipboardContent content = new ClipboardContent();
                 content.putString("Album");
                 db.setContent(content);
-                MusicPlayer.setDraggedItem(album);
+                Bootstrap.setDraggedItem(album);
                 db.setDragView(this.snapshot(null, null), 75, 75);
                 event.consume();
             });
@@ -128,16 +131,12 @@ public class ArtistsMainController implements Initializable, SubView {
 
         @Override
         protected void updateItem(Album album, boolean empty) {
-
             super.updateItem(album, empty);
             this.album = album;
-
             if (empty) {
-
                 setGraphic(null);
-
             } else {
-
+                log.info(album.getArtwork().getUrl());
                 albumArtwork.setImage(album.getArtwork());
                 setGraphic(albumArtwork);
             }
@@ -340,11 +339,11 @@ public class ArtistsMainController implements Initializable, SubView {
                 if (songTable.getSelectionModel().getSelectedIndices().size() > 1) {
                     content.putString("List");
                     db.setContent(content);
-                    MusicPlayer.setDraggedItem(songTable.getSelectionModel().getSelectedItems());
+                    Bootstrap.setDraggedItem(songTable.getSelectionModel().getSelectedItems());
                 } else {
                     content.putString("Song");
                     db.setContent(content);
-                    MusicPlayer.setDraggedItem(row.getItem());
+                    Bootstrap.setDraggedItem(row.getItem());
                 }
                 ImageView image = new ImageView(row.snapshot(null, null));
                 Rectangle2D rectangle = new Rectangle2D(0, 0, 250, 50);
@@ -435,14 +434,10 @@ public class ArtistsMainController implements Initializable, SubView {
     }
 
     void selectAlbum(Album album) {
-
         if (selectedAlbum == album) {
-
             albumList.getSelectionModel().clearSelection();
             showAllSongs(artistList.getSelectionModel().getSelectedItem(), false);
-
         } else {
-
             if (selectedSong != null) {
                 selectedSong.setSelected(false);
             }
@@ -528,6 +523,7 @@ public class ArtistsMainController implements Initializable, SubView {
     }
 
     private void showAllSongs(Artist artist, boolean fromMainController) {
+
         ObservableList<Album> albums = FXCollections.observableArrayList();
         ObservableList<Song> songs = FXCollections.observableArrayList();
         for (Album album : AppConfig.getInstance().getMusicSource().listAlbumsByArtist(artist.getId())) {
@@ -573,7 +569,7 @@ public class ArtistsMainController implements Initializable, SubView {
                     loadedLatch = new CountDownLatch(1);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("error", e);
             }
             songTableLoadAnimation.play();
         }).start();
