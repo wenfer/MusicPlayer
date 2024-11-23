@@ -5,6 +5,7 @@ import app.fxplayer.model.Artist;
 import app.fxplayer.model.Playlist;
 import app.fxplayer.model.Song;
 import javafx.concurrent.Task;
+import net.beardbot.subsonic.client.api.media.MediaStream;
 
 import java.io.File;
 import java.io.InputStream;
@@ -23,7 +24,7 @@ public interface MusicSource {
 
     boolean ping();
 
-    InputStream stream(Song song);
+    MediaStream stream(Song song);
 
 
     void createPlaylist(String text);

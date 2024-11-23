@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.beardbot.subsonic.client.Subsonic;
 import net.beardbot.subsonic.client.SubsonicPreferences;
 import net.beardbot.subsonic.client.api.lists.AlbumListParams;
+import net.beardbot.subsonic.client.api.media.MediaStream;
 import net.beardbot.subsonic.client.api.playlist.UpdatePlaylistParams;
 import net.beardbot.subsonic.client.base.SubsonicIncompatibilityException;
 import org.json.JSONObject;
@@ -18,7 +19,6 @@ import org.subsonic.restapi.IndexID3;
 import org.subsonic.restapi.PlaylistWithSongs;
 
 import java.io.File;
-import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -89,7 +89,7 @@ public class SonicClientSource implements MusicSource {
     private void downloadCoverArt(String coverArtId) {
         File tempFile = new File(FileUtil.getTmpDirPath(), "cover_" + coverArtId + ".tmp");
         if (!tempFile.exists()) {
-            FileUtil.writeFromStream(subsonic.media().getCoverArt(coverArtId), tempFile);
+            FileUtil.writeFromStream(subsonic.media().getCoverArt(coverArtId).getInputStream(), tempFile);
         }
     }
 
@@ -159,7 +159,7 @@ public class SonicClientSource implements MusicSource {
     }
 
     @Override
-    public InputStream stream(Song song) {
+    public MediaStream stream(Song song) {
         return this.subsonic.media().stream(song.getId());
     }
 
@@ -204,7 +204,8 @@ public class SonicClientSource implements MusicSource {
         if (tempFile.exists()) {
             return tempFile;
         }
-        FileUtil.writeFromStream(subsonic.media().getCoverArt(coverArtId), tempFile);
+        MediaStream coverArt = subsonic.media().getCoverArt(coverArtId);
+        FileUtil.writeFromStream(coverArt.getInputStream(), tempFile);
         return tempFile;
     }
 

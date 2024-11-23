@@ -4,6 +4,7 @@ import app.fxplayer.model.Song;
 import app.fxplayer.source.MusicSource;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import net.beardbot.subsonic.client.api.media.MediaStream;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -23,6 +24,9 @@ public class DownloadTask implements Runnable {
 
     @Getter
     private long downloaded = 0;
+
+    private long totalLength;
+
     private boolean finished = false;
 
     public DownloadTask(Song song, MusicSource musicSource, File targetFile) {
@@ -40,7 +44,9 @@ public class DownloadTask implements Runnable {
     public void run() {
         // 或者
         try {
-            InputStream inputStream = new BufferedInputStream(musicSource.stream(song));
+            MediaStream stream = musicSource.stream(song);
+            this.totalLength = stream.getContentLength();
+            InputStream inputStream = new BufferedInputStream(stream.getInputStream());
             FileOutputStream outputStream = new FileOutputStream(targetFile);
             log.info("开始下载音乐:{}  缓存路径:{}", song.getTitle(), targetFile.getAbsolutePath());
             byte[] buffer = new byte[8192];

@@ -87,7 +87,7 @@
         <dependency>
             <groupId>net.beardbot</groupId>
             <artifactId>subsonic-client</artifactId>
-            <version>0.5.1</version>
+            <version>0.6.0</version>
         </dependency>
         <dependency>
             <groupId>com.melloware</groupId>
