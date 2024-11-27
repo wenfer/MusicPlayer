@@ -429,18 +429,16 @@ public class AlbumsController implements Initializable, SubView {
     @Override
     public void play() {
         Song song = selectedSong;
-        //ObservableList<Song> songList = songTable.getItems();
+        ObservableList<Song> songList = songTable.getItems();
         NewPlayer player = NewPlayer.getInstance();
-        //player.setNowPlayingList(songList);
+        player.updatePlaylist(songList);
         player.play(song);
     }
 
     @Override
     public void scroll(char letter) {
-
         double finalVvalue = getFinalVvalue(letter);
         double startVvalue = gridBox.getVvalue();
-
         Animation scrollAnimation = new Transition() {
             {
                 setCycleDuration(Duration.millis(500));

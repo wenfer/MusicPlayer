@@ -190,7 +190,7 @@ public class NowPlayingController implements Initializable, SubView {
     	Song song = selectedSong;
         ObservableList<Song> songList = tableView.getItems();
         NewPlayer player = NewPlayer.getInstance();
-        player.setNowPlayingList(songList);
+        player.updatePlaylist(songList);
         player.play(song);
     }
     

@@ -44,6 +44,7 @@ public class SonicClientSource implements MusicSource {
 
     public SonicClientSource(String name, String serverUrl, String username, String password, int streamBitRate) {
         SubsonicPreferences preferences = new SubsonicPreferences(serverUrl, username, password);
+        preferences.setEstimateContentLength(true);
         this.name = name;
         preferences.setStreamBitRate(streamBitRate);
         preferences.setClientName(name);

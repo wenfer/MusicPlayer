@@ -831,7 +831,7 @@ public class MainController implements Initializable, IntellitypeListener {
     @FXML
     public void playPause() {
         sideBar.requestFocus();
-        if (NewPlayer.getInstance().isPlaying()) {
+        if (!NewPlayer.getInstance().isPlaying()) {
             NewPlayer.getInstance().play();
         } else {
             NewPlayer.getInstance().pause();
@@ -1003,7 +1003,6 @@ public class MainController implements Initializable, IntellitypeListener {
     }
 
     public void updatePlayPauseIcon(boolean isPlaying) {
-
         controlBox.getChildren().remove(1);
         if (isPlaying) {
             controlBox.getChildren().add(1, pauseButton);

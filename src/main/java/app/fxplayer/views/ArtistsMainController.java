@@ -242,7 +242,7 @@ public class ArtistsMainController implements Initializable, SubView {
                 });
 
                 Song song = songs.get(0);
-                player.setNowPlayingList(songs);
+                player.updatePlaylist(songs);
                 player.play(song);
 
             } else {
@@ -261,7 +261,7 @@ public class ArtistsMainController implements Initializable, SubView {
                 ArrayList<Song> songs = selectedAlbum.getSongs();
                 NewPlayer player = NewPlayer.getInstance();
                 Collections.sort(songs);
-                player.setNowPlayingList(songs);
+                player.updatePlaylist(songs);
                 player.play();
             } else {
                 Thread thread = getThread(album);
@@ -618,7 +618,7 @@ public class ArtistsMainController implements Initializable, SubView {
             }
         });
 
-        player.setNowPlayingList(songs);
+        player.updatePlaylist(songs);
         player.play(song);
     }
 

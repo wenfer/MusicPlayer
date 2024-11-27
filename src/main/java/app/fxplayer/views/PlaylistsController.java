@@ -230,7 +230,7 @@ public class PlaylistsController implements Initializable, SubView {
         Song song = selectedSong;
         ObservableList<Song> songs = selectedPlaylist.getSongs();
         NewPlayer player = NewPlayer.getInstance();
-        player.setNowPlayingList(songs);
+        player.updatePlaylist(songs);
         player.play(song);
     }
 
@@ -298,7 +298,7 @@ public class PlaylistsController implements Initializable, SubView {
     private void playPlaylist() {
         ObservableList<Song> songs = selectedPlaylist.getSongs();
         NewPlayer player = NewPlayer.getInstance();
-        player.setNowPlayingList(songs);
+        player.updatePlaylist(songs);
         player.play();
     }
 

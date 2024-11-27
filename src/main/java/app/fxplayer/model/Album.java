@@ -4,7 +4,6 @@ import app.fxplayer.AppConfig;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -65,16 +64,20 @@ public final class Album implements Comparable<Album>, SourceData {
                     log.info("task finish  {}   {}", file.getAbsolutePath(), this.artwork.getUrl());
                     this.artworkProperty.setValue(this.artwork);
                 });
-    CompletableFuture.supplyAsync(() ->
-                    AppConfig.getInstance().getMusicSource().listByAlbum(this)
-            )
-            .thenAccept((songs) -> this.songs = songs);
+        CompletableFuture.supplyAsync(() ->
+                        AppConfig.getInstance().getMusicSource().listByAlbum(this)
+                )
+                .thenAccept((songs) -> this.songs = songs);
 
     }
 
     @JSONPropertyIgnore
     public ArrayList<Song> getSongs() {
         return new ArrayList<>(this.songs);
+    }
+
+    public Image getArtwork() {
+        return artwork == null ? DEFAULT_ALBUM : artwork;
     }
 
     @JSONPropertyIgnore
