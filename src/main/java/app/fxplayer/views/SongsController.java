@@ -276,9 +276,9 @@ public class SongsController implements Initializable, SubView {
             case "titleColumn":
                 for (Song song : songTableItems) {
                     // Gets song title and compares first letter to selected letter.
-                    String songTitle = song.getTitle();
+                    String firstPinyin = song.getFirstPinyin();
                     try {
-                        char firstLetter = songTitle.charAt(0);
+                        char firstLetter = firstPinyin.charAt(0);
                         if (firstLetter < letter) {
                             selectedCell++;
                         } else if (firstLetter == letter) {
