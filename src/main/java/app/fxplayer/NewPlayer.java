@@ -74,6 +74,7 @@ public class NewPlayer {
     }
 
     public void play(Song song) {
+        clearPlay();
         if (!this.nowPlayingList.isEmpty()) {
             int i = this.nowPlayingList.indexOf(song);
             if (i > -1) {
@@ -149,6 +150,11 @@ public class NewPlayer {
                 nowPlayingIndex = 0;
             }
         }
+        clearPlay();
+        nowPlayingIndex++;
+        if (nowPlayingIndex >= nowPlayingList.size()) {
+            nowPlayingIndex = 0;
+        }
         play();
     }
 
@@ -175,7 +181,8 @@ public class NewPlayer {
      */
     private void clearPlay() {
         Song nowPlaying = getNowPlaying();
-        nowPlaying.setPlaying(false);
+        if (nowPlaying != null)
+            nowPlaying.setPlaying(false);
         if (this.mediaPlayer != null) {
             this.mediaPlayer.stop();
             this.mediaPlayer = null;
@@ -184,6 +191,7 @@ public class NewPlayer {
             this.timer.cancel();
             this.timer = null;
         }
+
     }
 
     /**
@@ -197,7 +205,9 @@ public class NewPlayer {
         if (this.mediaPlayer != null) {
             this.mediaPlayer.play();
         } else {
+            timerCounter = 0;
             Song song = getNowPlaying();
+            mainController.updatePlayInfo(song);
             String uri = getOrCache(song);
             Media media = new Media(uri);
             mediaPlayer = new MediaPlayer(media);
@@ -307,9 +317,7 @@ public class NewPlayer {
                         Bootstrap.getMainController().updateTimeLabels();
                         NewPlayer.getInstance().secondsPlayed++;
                     }
-                    if (!Bootstrap.getMainController().isTimeSliderPressed()) {
-                        Bootstrap.getMainController().updateTimeSlider();
-                    }
+                    Bootstrap.getMainController().updateTimeSlider();
                 }
             });
         }

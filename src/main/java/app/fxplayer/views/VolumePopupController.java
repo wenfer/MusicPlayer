@@ -6,12 +6,12 @@ import java.util.ResourceBundle;
 import app.fxplayer.Bootstrap;
 
 import app.fxplayer.NewPlayer;
-import app.fxplayer.util.CustomSliderSkin;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.control.skin.SliderSkin;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 
@@ -32,7 +32,7 @@ public class VolumePopupController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         try {
 
-            CustomSliderSkin sliderSkin = new CustomSliderSkin(volumeSlider);
+            SliderSkin sliderSkin = new SliderSkin(volumeSlider);
             volumeSlider.setSkin(sliderSkin);
             frontVolumeTrack.prefWidthProperty().bind(volumeSlider.widthProperty().subtract(30).multiply(volumeSlider.valueProperty().divide(volumeSlider.maxProperty())));
             volumeSlider.valueProperty().addListener((x, y, z) -> {

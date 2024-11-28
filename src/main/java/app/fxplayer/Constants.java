@@ -15,5 +15,6 @@ public interface Constants {
 
     Image DEFAULT_ALBUM = new Image(IMG + "albumsIcon.png");
     Image DEFAULT_ARTISTS = new Image(IMG + "artistsIcon.png");
+    Image DEFAULT_SONGS_ICON = new Image(IMG + "songsIcon.png");
 
 }

@@ -41,11 +41,10 @@ public class Bootstrap extends Application {
     @Getter
     private static Stage stage;
 
-    @Getter
-    private static ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     public static void main(String[] args) {
         log.error("开始启动");
+
         Application.launch(Bootstrap.class);
     }
 

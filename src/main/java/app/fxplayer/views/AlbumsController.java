@@ -2,7 +2,6 @@ package app.fxplayer.views;
 
 import app.fxplayer.AppConfig;
 import app.fxplayer.Bootstrap;
-
 import app.fxplayer.NewPlayer;
 import app.fxplayer.model.Album;
 import app.fxplayer.model.Song;
@@ -18,7 +17,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
@@ -32,16 +30,20 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
-
 import javafx.util.Duration;
 import lombok.Getter;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.ResourceBundle;
 
 public class AlbumsController implements Initializable, SubView {
 
+    private static final Logger log = LoggerFactory.getLogger(AlbumsController.class);
     @FXML
     private ScrollPane gridBox;
     @FXML
@@ -429,9 +431,11 @@ public class AlbumsController implements Initializable, SubView {
     @Override
     public void play() {
         Song song = selectedSong;
-        ObservableList<Song> songList = songTable.getItems();
+        log.info("开始播放:{}", song.getTitle());
         NewPlayer player = NewPlayer.getInstance();
-        player.updatePlaylist(songList);
+        // 单曲播放不替换播放列表，直接追加
+        //ObservableList<Song> songList = songTable.getItems();
+        //player.updatePlaylist(songList);
         player.play(song);
     }
 

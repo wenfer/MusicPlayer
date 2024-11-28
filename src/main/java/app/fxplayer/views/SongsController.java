@@ -1,7 +1,6 @@
 package app.fxplayer.views;
 
 import app.fxplayer.AppConfig;
-
 import app.fxplayer.Bootstrap;
 import app.fxplayer.NewPlayer;
 import app.fxplayer.model.Song;
@@ -47,7 +46,7 @@ public class SongsController implements Initializable, SubView {
     @FXML
     private TableColumn<Song, Integer> playsColumn;
     @FXML
-    private TableColumn<Song, String> typeColumn;
+    private TableColumn<Song, String> formatColumn;
 
 
     // Initializes table view scroll bar.
@@ -60,6 +59,7 @@ public class SongsController implements Initializable, SubView {
     @Getter
     private Song selectedSong;
 
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
@@ -70,7 +70,7 @@ public class SongsController implements Initializable, SubView {
         albumColumn.prefWidthProperty().bind(tableView.widthProperty().subtract(50).multiply(0.2));
         lengthColumn.prefWidthProperty().bind(tableView.widthProperty().subtract(50).multiply(0.11));
         playsColumn.prefWidthProperty().bind(tableView.widthProperty().subtract(50).multiply(0.11));
-        typeColumn.prefWidthProperty().bind(tableView.widthProperty().subtract(50).multiply(0.12));
+        formatColumn.prefWidthProperty().bind(tableView.widthProperty().subtract(50).multiply(0.12));
 
         playingColumn.setCellFactory(x -> new PlayingTableCell<>());
         titleColumn.setCellFactory(x -> new ControlPanelTableCell<>());
@@ -78,7 +78,7 @@ public class SongsController implements Initializable, SubView {
         albumColumn.setCellFactory(x -> new ClippedTableCell<>());
         lengthColumn.setCellFactory(x -> new ClippedTableCell<>());
         playsColumn.setCellFactory(x -> new ClippedTableCell<>());
-        typeColumn.setCellFactory(x -> new ClippedTableCell<>());
+        formatColumn.setCellFactory(x -> new ClippedTableCell<>());
 
         playingColumn.setCellValueFactory(new PropertyValueFactory<>("playing"));
         titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
@@ -86,7 +86,7 @@ public class SongsController implements Initializable, SubView {
         albumColumn.setCellValueFactory(new PropertyValueFactory<>("album"));
         lengthColumn.setCellValueFactory(new PropertyValueFactory<>("length"));
         playsColumn.setCellValueFactory(new PropertyValueFactory<>("playCount"));
-        typeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
+        formatColumn.setCellValueFactory(new PropertyValueFactory<>("format"));
 
         lengthColumn.setSortable(false);
         playsColumn.setSortable(false);
@@ -100,17 +100,13 @@ public class SongsController implements Initializable, SubView {
         ObservableList<Song> songs = FXCollections.observableArrayList(AppConfig.getInstance().getMusicSource().getSongs());
 
         songs.sort(this::compareSongs);
-
         tableView.setItems(songs);
 
         tableView.setRowFactory(x -> {
             TableRow<Song> row = new TableRow<>();
-
             PseudoClass playing = PseudoClass.getPseudoClass("playing");
-
             ChangeListener<Boolean> changeListener = (obs, oldValue, newValue) ->
                     row.pseudoClassStateChanged(playing, newValue);
-
             row.itemProperty().addListener((obs, previousSong, currentSong) -> {
                 if (previousSong != null) {
                     previousSong.playingProperty().removeListener(changeListener);
@@ -205,26 +201,26 @@ public class SongsController implements Initializable, SubView {
                 play();
             }
         });
+        // 需要适配一下歌名排序和专辑歌手排序的功能，得好好设计一下拼音模块
+/*        titleColumn.setComparator((x, y) -> {
 
-//        titleColumn.setComparator((x, y) -> {
-//
-//            if (x == null && y == null) {
-//                return 0;
-//            } else if (x == null) {
-//                return 1;
-//            } else if (y == null) {
-//                return -1;
-//            }
-//
-//            Song first = Library.getSong(x);
-//            Song second = Library.getSong(y);
-//
-//            return compareSongs(first, second);
-//        });
+            if (x == null && y == null) {
+                return 0;
+            } else if (x == null) {
+                return 1;
+            } else if (y == null) {
+                return -1;
+            }
 
-//        artistColumn.setComparator((first, second) -> Library.getArtist(first).compareTo(Library.getArtist(second)));
-//
-//        albumColumn.setComparator((first, second) -> Library.getAlbum(first).compareTo(Library.getAlbum(second)));
+            Song first = Library.getSong(x);
+            Song second = Library.getSong(y);
+
+            return compareSongs(first, second);
+        });
+
+        artistColumn.setComparator((first, second) -> Library.getArtist(first).compareTo(Library.getArtist(second)));
+
+        albumColumn.setComparator((first, second) -> Library.getAlbum(first).compareTo(Library.getAlbum(second)));*/
     }
 
     private int compareSongs(Song x, Song y) {
@@ -235,32 +231,31 @@ public class SongsController implements Initializable, SubView {
         } else if (y == null) {
             return -1;
         }
-        if (x.getTitle() == null && y.getTitle() == null) {
+        if (x.getFirstPinyin() == null && y.getFirstPinyin() == null) {
             // Both are equal.
             return 0;
-        } else if (x.getTitle() == null) {
+        } else if (x.getFirstPinyin() == null) {
             // Null is after other strings.
             return 1;
-        } else if (y.getTitle() == null) {
+        } else if (y.getFirstPinyin() == null) {
             // All other strings are before null.
             return -1;
         } else  /*(x.getTitle() != null && y.getTitle() != null)*/ {
-            return x.getTitle().compareTo(y.getTitle());
+            // 获取拼音首字母
+            return x.getFirstPinyin().compareTo(y.getFirstPinyin());
         }
     }
+
 
     @Override
     public void play() {
         Song song = selectedSong;
-        ObservableList<Song> songList = tableView.getItems();
         NewPlayer player = NewPlayer.getInstance();
-        player.updatePlaylist(songList);
         player.play(song);
     }
 
     @Override
     public void scroll(char letter) {
-
         if (!tableView.getSortOrder().isEmpty()) {
             currentSortColumn = tableView.getSortOrder().get(0).getId();
             currentSortOrder = tableView.getSortOrder().get(0).getSortType().toString().toLowerCase();
@@ -357,16 +352,12 @@ public class SongsController implements Initializable, SubView {
     }
 
     private String removeArticle(String title) {
-
         String[] arr = title.split(" ", 2);
-
         if (arr.length < 2) {
             return title;
         } else {
-
             String firstWord = arr[0];
             String theRest = arr[1];
-
             return switch (firstWord) {
                 case "A", "An", "The" -> theRest;
                 default -> title;

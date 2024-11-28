@@ -25,7 +25,8 @@ public class DownloadTask implements Runnable {
     @Getter
     private long downloaded = 0;
 
-    //private long totalLength;
+    @Getter
+    private long totalLength;
 
     private boolean finished = false;
 
@@ -45,8 +46,8 @@ public class DownloadTask implements Runnable {
         // 或者
         try {
             MediaStream stream = musicSource.stream(song);
-            //this.totalLength = stream.getContentLength();
             InputStream inputStream = new BufferedInputStream(stream.getInputStream());
+            this.totalLength = stream.getContentLength();
             FileOutputStream outputStream = new FileOutputStream(targetFile);
             log.info("开始下载音乐:{} length {} 缓存路径:{}", song.getTitle(), stream.getContentLength() == null ? "未知" : stream.getContentLength(), targetFile.getAbsolutePath());
             byte[] buffer = new byte[8192];

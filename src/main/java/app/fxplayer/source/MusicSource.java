@@ -16,8 +16,6 @@ public interface MusicSource {
 
     List<Song> listByAlbum(Album album);
 
-    List<Song> listByArtist(Artist artist);
-
     List<Album> listAlbums();
 
     List<Artist> listArtists();
@@ -25,7 +23,6 @@ public interface MusicSource {
     boolean ping();
 
     MediaStream stream(Song song);
-
 
     void createPlaylist(String text);
 

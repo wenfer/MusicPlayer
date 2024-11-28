@@ -8,6 +8,7 @@ import javafx.geometry.Side;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.control.SkinBase;
 import javafx.scene.control.Slider;
+import javafx.scene.control.skin.SliderSkin;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
@@ -19,7 +20,7 @@ import org.slf4j.LoggerFactory;
  * Region/css based skin for slider.
  */
 @SuppressWarnings("restriction")
-public class CustomSliderSkin extends SkinBase<Slider> {
+public class CustomSliderSkin extends SliderSkin {
 
     private static final Logger log = LoggerFactory.getLogger(CustomSliderSkin.class);
     // Track if slider is vertical/horizontal and cause re layout.
@@ -101,6 +102,7 @@ public class CustomSliderSkin extends SkinBase<Slider> {
 
     private void initialize() {
         thumb = new StackPane();
+
         thumb.getStyleClass().setAll("thumb");
         track = new StackPane();
         track.getStyleClass().setAll("track");
@@ -148,14 +150,16 @@ public class CustomSliderSkin extends SkinBase<Slider> {
             log.info("mock thumbReleased");
             thumbReleaseAnimation.play();
         });
-
-        thumb.setOnMouseDragged(me -> {
+/*        thumb.setOnMouseDragged(me -> {
             Point2D cur = thumb.localToParent(me.getX(), me.getY());
             double dragPos = (getSkinnable().getOrientation() == Orientation.HORIZONTAL) ?
                     cur.getX() - dragStart.getX() : -(cur.getY() - dragStart.getY());
             //getBehavior().thumbDragged(me, preDragThumbPos + dragPos / trackLength);
+            Slider slider = getSkinnable();
+            double position = preDragThumbPos + dragPos / trackLength;
+            getSkinnable().setValue(Utils.clamp(slider.getMin(), (position * (slider.getMax() - slider.getMin())) + slider.getMin(), slider.getMax()));
             log.info("hook thumbDragged {}", preDragThumbPos + dragPos / trackLength);
-        });
+        });*/
     }
 
     private void setShowTickMarks(boolean ticksVisible, boolean labelsVisible) {

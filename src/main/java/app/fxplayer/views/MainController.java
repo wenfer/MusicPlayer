@@ -5,7 +5,6 @@ import app.fxplayer.Bootstrap;
 import app.fxplayer.Constants;
 import app.fxplayer.NewPlayer;
 import app.fxplayer.model.*;
-import app.fxplayer.util.CustomSliderSkin;
 import app.fxplayer.util.Search;
 import app.fxplayer.util.SubView;
 import com.melloware.jintellitype.IntellitypeListener;
@@ -28,6 +27,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.*;
+import javafx.scene.control.skin.SliderSkin;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
@@ -61,7 +61,7 @@ public class MainController implements Initializable, IntellitypeListener {
     private final double searchCollapsed = 0;
     @Getter
     private SubView subViewController;
-    private CustomSliderSkin sliderSkin;
+    private SliderSkin sliderSkin;
     private Stage volumePopup;
     private Stage searchPopup;
     private VolumePopupController volumePopupController;
@@ -114,7 +114,7 @@ public class MainController implements Initializable, IntellitypeListener {
         resetLatch();
         controlBox.getChildren().remove(2);
         frontSliderTrack.prefWidthProperty().bind(timeSlider.widthProperty().multiply(timeSlider.valueProperty().divide(timeSlider.maxProperty())));
-        sliderSkin = new CustomSliderSkin(timeSlider);
+        sliderSkin = new SliderSkin(timeSlider);
         timeSlider.setSkin(sliderSkin);
         createVolumePopup();
         createSearchPopup();
@@ -146,8 +146,7 @@ public class MainController implements Initializable, IntellitypeListener {
 
                     double previous = oldValue.doubleValue();
                     double current = newValue.doubleValue();
-                    if (!timeSlider.isValueChanging() && current != previous + 1 && !isTimeSliderPressed()) {
-
+                    if (!timeSlider.isValueChanging() && current != previous + 1) {
                         int seconds = (int) Math.round(current / 4.0);
                         timeSlider.setValue(seconds * 4);
                         NewPlayer.getInstance().seek(seconds);
@@ -206,12 +205,8 @@ public class MainController implements Initializable, IntellitypeListener {
             Label label = (Label) node;
             label.prefWidthProperty().bind(letterBox.widthProperty().subtract(50).divide(26).subtract(1));
         }
-
-        updateNowPlayingButton();
-        initializeTimeSlider();
-        initializeTimeLabels();
+        updatePlayInfo(null);
         initializePlaylists();
-
         // Register media keys on Windows
         if (System.getProperty("os.name").toUpperCase().contains("WINDOWS")) {
             JIntellitype.getInstance().addIntellitypeListener(this);
@@ -296,46 +291,33 @@ public class MainController implements Initializable, IntellitypeListener {
         }
     }
 
-    public void updateNowPlayingButton() {
-        Song song = NewPlayer.getInstance().getNowPlaying();
+
+    public void updatePlayInfo(Song song) {
+        timeSlider.setMin(0);
         if (song != null) {
             nowPlayingTitle.setText(song.getTitle());
             nowPlayingArtist.setText(song.getArtist());
             nowPlayingArtwork.setImage(song.getArtwork());
+            timeSlider.setMax(song.getLengthInSeconds() * 4);
+            timePassed.setText("0:00");
+            timeRemaining.setText(song.getLength());
         } else {
+            timeSlider.setMax(1);
+            timePassed.setText("");
+            timeRemaining.setText("");
             nowPlayingTitle.setText("");
             nowPlayingArtist.setText("");
             nowPlayingArtwork.setImage(null);
         }
-    }
-
-    public void initializeTimeSlider() {
-
-        Song song = NewPlayer.getInstance().getNowPlaying();
-        timeSlider.setMin(0);
-        if (song != null) {
-            timeSlider.setMax(song.getLengthInSeconds() * 4);
-        } else {
-            timeSlider.setMax(1);
-        }
         timeSlider.setValue(0);
         timeSlider.setBlockIncrement(1);
+
     }
 
     public void updateTimeSlider() {
         timeSlider.increment();
     }
 
-    public void initializeTimeLabels() {
-        Song song = NewPlayer.getInstance().getNowPlaying();
-        if (song != null) {
-            timePassed.setText("0:00");
-            timeRemaining.setText(song.getLength());
-        } else {
-            timePassed.setText("");
-            timeRemaining.setText("");
-        }
-    }
 
     public void updateTimeLabels() {
         timePassed.setText(NewPlayer.getInstance().getTimePassed());
@@ -989,9 +971,10 @@ public class MainController implements Initializable, IntellitypeListener {
         return volumePopupController.getSlider();
     }
 
-    public boolean isTimeSliderPressed() {
-        return sliderSkin.getThumb().isPressed() || sliderSkin.getTrack().isPressed();
-    }
+//    public boolean isTimeSliderPressed() {
+//        return sliderSkin.p || sliderSkin.getTrack().isPressed();
+//        return true;
+//    }
 
 
     ScrollPane getScrollPane() {

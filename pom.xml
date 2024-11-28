@@ -18,6 +18,7 @@
         <ormlite.version>6.1</ormlite.version>
         <logback.version>1.5.12</logback.version>
         <hutool.version>5.8.33</hutool.version>
+        <subsonic.version>0.6.0</subsonic.version>
     </properties>
 
     <dependencies>
@@ -36,6 +37,11 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
             <version>${logback.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.belerweb</groupId>
+            <artifactId>pinyin4j</artifactId>
+            <version>2.5.1</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -87,7 +93,7 @@
         <dependency>
             <groupId>net.beardbot</groupId>
             <artifactId>subsonic-client</artifactId>
-            <version>0.6.0</version>
+            <version>${subsonic.version}</version>
         </dependency>
         <dependency>
             <groupId>com.melloware</groupId>

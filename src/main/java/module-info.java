@@ -1,5 +1,6 @@
 module app.musicplayer {
     requires javafx.controls;
+    requires javafx.graphics;
     requires javafx.fxml;
     requires javafx.media;
     requires static lombok;
@@ -18,6 +19,7 @@ module app.musicplayer {
     requires org.apache.commons.codec;
     requires org.xerial.sqlitejdbc;
     requires cn.hutool.core;
+    requires pinyin4j;
 
     opens app.fxplayer to javafx.fxml;
     opens app.fxplayer.model to javafx.base, ormlite.jdbc;

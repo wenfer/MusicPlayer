@@ -21,8 +21,6 @@ import org.subsonic.restapi.PlaylistWithSongs;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -35,8 +33,6 @@ public class SonicClientSource implements MusicSource {
     private final Map<String, Album> albumListCache = new HashMap<>();
 
     private Map<String, Artist> artistCache = null;
-
-    private final ExecutorService downloadCoverArtExecutor = Executors.newCachedThreadPool();
 
     private final Map<String, Playlist> playlistCache = new HashMap<>();
 
@@ -75,11 +71,16 @@ public class SonicClientSource implements MusicSource {
                     if (albumList.size() != size) {
                         hasNext = false;
                     }
-                    albumList.forEach(child -> {
-                        downloadCoverArtExecutor.submit(() -> this.downloadCoverArt(child.getCoverArtId()));
-                        this.albumListCache.put(child.getId(), new Album(child.getId(), child.getTitle(), this.name, child.getArtist(),
-                                child.getArtistId(), child.getCoverArtId()));
-                    });
+                    albumList.forEach(child -> this.albumListCache.put(child.getId(),
+                            new Album(
+                                    child.getId(),
+                                    child.getTitle(),
+                                    this.name,
+                                    child.getArtist(),
+                                    child.getArtistId(),
+                                    child.getCoverArtId()
+                            )
+                    ));
                     page++;
                 }
             });
@@ -96,7 +97,7 @@ public class SonicClientSource implements MusicSource {
 
 
     private Song childToSong(Child child, Album album) {
-        return new Song(child.getId(),
+        Song song = new Song(child.getId(),
                 child.getTitle(),
                 child.getArtist(),
                 child.getArtistId(),
@@ -105,7 +106,10 @@ public class SonicClientSource implements MusicSource {
                 child.getDiscNumber() == null ? 1 : child.getDiscNumber(),
                 child.getPlayCount() == null ? 0 : child.getPlayCount().intValue(),
                 child.getSize(),
+                child.getCoverArtId(),
                 album);
+        this.songsCache.putIfAbsent(song.getId(), song);
+        return song;
     }
 
 
@@ -114,15 +118,10 @@ public class SonicClientSource implements MusicSource {
         AlbumWithSongsID3 withSongsID3 = this.subsonic.browsing().getAlbum(album.getId());
         return withSongsID3.getSongs().stream().map(child -> {
             log.info("song info :{}", new JSONObject(child));
-            downloadCoverArtExecutor.submit(() -> this.downloadCoverArt(child.getCoverArtId()));
             return childToSong(child, album);
         }).collect(Collectors.toList());
     }
 
-    @Override
-    public List<Song> listByArtist(Artist artist) {
-        return List.of();
-    }
 
     @Override
     public List<Album> listAlbums() {
@@ -135,7 +134,6 @@ public class SonicClientSource implements MusicSource {
             this.artistCache = new HashMap<>();
             List<IndexID3> artistList = subsonic.browsing().getArtists();
             artistList.forEach(indexID3 -> indexID3.getArtists().forEach(artistID3 -> {
-                downloadCoverArtExecutor.submit(() -> this.downloadCoverArt(artistID3.getCoverArtId()));
                 Artist artist = new Artist(artistID3.getId(), artistID3.getName(), artistID3.getCoverArtId());
                 this.artistCache.put(artistID3.getId(), artist);
             }));
@@ -167,7 +165,7 @@ public class SonicClientSource implements MusicSource {
 
     @Override
     public void createPlaylist(String text) {
-
+        CompletableFuture.runAsync(() -> subsonic.playlists().createPlaylist(text, List.of()));
     }
 
     @Override
@@ -223,7 +221,7 @@ public class SonicClientSource implements MusicSource {
     @Override
     public void deletePlaylist(String playlistId) {
         this.playlistCache.remove(playlistId);
-        downloadCoverArtExecutor.submit(() -> subsonic.playlists().deletePlaylist(playlistId));
+        CompletableFuture.runAsync(() -> subsonic.playlists().deletePlaylist(playlistId));
     }
 
 
